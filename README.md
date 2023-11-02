@@ -8,13 +8,16 @@
 ## About
 
 This firmware allow to control the leds on the nRF52840 development kit using
-a BLE service (`826c9400-8f2f-4dc5-8319-d07b584cf83e`) which exposes two
-writable characteristics:
-- `04df2644-e6b8-4541-8a7f-cecf67f365fe` to set the time interval from 0 to
-  65535ms (2 bytes) between each led changes.
-- `7656d6e9-46da-425a-8c9e-4fa2becdf619` to set the leds on/off toggling 
-  sequence. The sequence is compose of 8 bytes, on for each of the led (from 0 
-  to 3) which would be turned on/off after waiting for the time interval.
+a BLE service (`826c9400-8f2f-4dc5-8319-d07b584cf83e`) which exposes 3
+characteristics:
+- `04df2644-e6b8-4541-8a7f-cecf67f365fe` (writable) to set the time interval 
+  from 0 to 65535ms (2 bytes) between each led changes.
+- `7656d6e9-46da-425a-8c9e-4fa2becdf619` (writable) to set the leds on/off 
+  toggling sequence. The sequence is compose of 8 bytes, on for each of the led 
+  (from 0 to 3) which would be turned on/off after waiting for the time 
+  interval.
+- `24b35ad0-d0f0-4811-bdfb-16d4451a514f` (readable) to inform about the leds
+  status.
 
 It only changes the state of one led each time.
 
@@ -26,7 +29,7 @@ The default sequence is: `led 0`, `led 0`, `led 1`, `led 1`, `led 2`, `led 2`,
 ## Test BLE
 
 To test, use an app like `LightBlue` to scan for a device named
-`gp-nrf52840` which advertises the service 
+`Greg's nRF52840 Blinky` which advertises the service 
 `fefb5d60-994e-4d19-be43-d7849a807198`.
 
 ## References

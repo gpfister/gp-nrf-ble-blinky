@@ -30,7 +30,8 @@ static const struct gpio_dt_spec led[4] = {
     GPIO_DT_SPEC_GET(LED0_NODE, gpios),
     GPIO_DT_SPEC_GET(LED1_NODE, gpios),
     GPIO_DT_SPEC_GET(LED2_NODE, gpios),
-    GPIO_DT_SPEC_GET(LED3_NODE, gpios)};
+    GPIO_DT_SPEC_GET(LED3_NODE, gpios),
+};
 
 __uint8_t gSequence[8] = {0, 1, 2, 3, 3, 2, 1, 0};
 __uint16_t gTimeInterval = 1000;
@@ -43,16 +44,19 @@ int led_controller_init() {
     printk(" ");
 
     if (!gpio_is_ready_dt(&led[i])) {
+      printk("[Led Controller] Unable to init led #%i (error code %i)\n", i, ret);
       return -1;
     }
 
     ret = gpio_pin_configure_dt(&led[i], GPIO_OUTPUT_ACTIVE);
     if (ret < 0) {
+      printk("[Led Controller] Unable to configure led #%i (error code %i)\n", i, ret);
       return -2;
     }
 
     ret = gpio_pin_toggle_dt(&led[i]);
     if (ret < 0) {
+      printk("[Led Controller] Unable to toggle led #%i (error code %i)\n", i, ret);
       return -3;
     }
 
@@ -66,9 +70,9 @@ int led_controller_init() {
 int led_controller_run_sequnce() {
   int ret;
   for (int i = 0; i < 8; i++) {
-    printk("[Led Controller] Toggling led #%i\n", gSequence[i]);
     ret = gpio_pin_toggle_dt(&led[gSequence[i]]);
     if (ret < 0) {
+      printk("[Led Controller] Unable to toggle led #%i (error code %i)\n", gSequence[i], ret);
       return -1;
     }
     k_msleep(gTimeInterval);
