@@ -18,6 +18,8 @@
 #include <zephyr/bluetooth/hci.h>
 #include <zephyr/bluetooth/uuid.h>
 
+#include "led_controller.h"
+
 /* Device name */
 #define DEVICE_NAME CONFIG_BT_DEVICE_NAME
 #define DEVICE_NAME_LEN (sizeof(DEVICE_NAME) - 1)
@@ -35,15 +37,30 @@
 #define UUID_BLINKY_CHARACTERISTIC_SEQUENCE BT_UUID_DECLARE_128(UUID_BLINKY_CHARACTERISTIC_SEQUENCE_VAL)
 #define UUID_BLINKT_CHARACTERISTSIC_LED_STATUS BT_UUID_DECLARE_128(UUID_BLINKT_CHARACTERISTSIC_LED_STATUS_VAL)
 
+/* Current connect */
+struct bt_conn *current_conn;
+
 /* Advertizing data */
-static const struct bt_data advertizingData[] = {
+static const struct bt_data advertizing_data[] = {
+    // Flags: BLE, no classic
     BT_DATA_BYTES(BT_DATA_FLAGS, (BT_LE_AD_GENERAL | BT_LE_AD_NO_BREDR)),
+    // Device name
     BT_DATA(BT_DATA_NAME_COMPLETE, DEVICE_NAME, DEVICE_NAME_LEN),
 };
 
 /* Scanning data */
-static const struct bt_data scanningData[] = {
+static const struct bt_data scanning_data[] = {
+    // Advertised service
     BT_DATA_BYTES(BT_DATA_UUID128_ALL, UUID_ADVERTISED_SERVICE_VAL),
+};
+
+/* Callbacks */
+void on_connected(struct bt_conn *conn, uint8_t err);
+void on_disconnected(struct bt_conn *conn, uint8_t reason);
+
+struct bt_conn_cb connection_callback = {
+    .connected = on_connected,
+    .disconnected = on_disconnected,
 };
 
 /* Semaphores */
@@ -54,6 +71,9 @@ void ble_controller_bt_ready(int err);
 
 int ble_controller_init() {
   int ret;
+
+  // Register callbacks
+  bt_conn_cb_register(&connection_callback);
 
   // Unale BLE
   printk("[BLE Controller] Intializing BLE...\n");
@@ -67,7 +87,7 @@ int ble_controller_init() {
   k_sem_take(&ble_controller_bt_init_ok, K_FOREVER);
 
   // Advertize
-  ret = bt_le_adv_start(BT_LE_ADV_CONN, advertizingData, ARRAY_SIZE(advertizingData), scanningData, ARRAY_SIZE(scanningData));
+  ret = bt_le_adv_start(BT_LE_ADV_CONN, advertizing_data, ARRAY_SIZE(advertizing_data), scanning_data, ARRAY_SIZE(scanning_data));
   if (ret < 0) {
     printk("[BLE Controller] Unable to start advertizing (error code %i)\n", ret);
     return -2;
@@ -84,4 +104,31 @@ void ble_controller_bt_ready(int err) {
   }
 
   k_sem_give(&ble_controller_bt_init_ok);
+}
+
+void on_connected(struct bt_conn *conn, uint8_t err) {
+  if (err) {
+    printk("[BLE Controller] Unable to connect (error code %i)\n", err);
+    return;
+  }
+
+  // Reference current connection
+  struct bt_conn *current_conn = bt_conn_ref(conn);
+  printk("[BLE Controller] Device connected\n");
+
+  // Set led indicating BLE central is connected
+  led_controller_set_bt_connected();
+}
+
+void on_disconnected(struct bt_conn *conn, uint8_t reason) {
+  printk("[BLE Controller] Device disconnected (reason code %i)\n", reason);
+
+  // If there was an active connect, unreference it
+  if (current_conn) {
+    bt_conn_unref(current_conn);
+    current_conn = NULL;
+  }
+
+  // Unset led BLE indicating BLE central is connected
+  led_controller_unset_bt_connected();
 }

@@ -22,47 +22,88 @@
 #define LED2_NODE DT_ALIAS(led2)
 #define LED3_NODE DT_ALIAS(led3)
 
+/* Declarations */
+int led_controller_set_blinking_led();
+int led_controller_set_bt_status_led();
+
 /*
  * A build error on this line means your board is unsupported.
  * See the sample documentation for information on how to fix this.
  */
-static const struct gpio_dt_spec led[4] = {
-    GPIO_DT_SPEC_GET(LED0_NODE, gpios),
-    GPIO_DT_SPEC_GET(LED1_NODE, gpios),
-    GPIO_DT_SPEC_GET(LED2_NODE, gpios),
-    GPIO_DT_SPEC_GET(LED3_NODE, gpios),
-};
+static const struct gpio_dt_spec led_blinking = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
+static const struct gpio_dt_spec led_bt_status = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
 
-__uint8_t gSequence[8] = {0, 1, 2, 3, 3, 2, 1, 0};
-__uint16_t gTimeInterval = 1000;
+/* Sequence */
+uint16_t g_sequence[8] = {1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000};
+
+/* Time interval */
+uint16_t g_time_interval = 1000;
 
 int led_controller_init() {
   int ret;
 
-  printk("[Led Controller] Intializing led...");
-  for (int i = 0; i < 4; i++) {
-    printk(" ");
+  printk("[Led Controller] Intializing led...\n");
 
-    if (!gpio_is_ready_dt(&led[i])) {
-      printk("[Led Controller] Unable to init led #%i (error code %i)\n", i, ret);
-      return -1;
-    }
-
-    ret = gpio_pin_configure_dt(&led[i], GPIO_OUTPUT_ACTIVE);
-    if (ret < 0) {
-      printk("[Led Controller] Unable to configure led #%i (error code %i)\n", i, ret);
-      return -2;
-    }
-
-    ret = gpio_pin_toggle_dt(&led[i]);
-    if (ret < 0) {
-      printk("[Led Controller] Unable to toggle led #%i (error code %i)\n", i, ret);
-      return -3;
-    }
-
-    printk("#%i", i);
+  // Blinking led
+  ret = led_controller_set_blinking_led();
+  if (ret < 0) {
+    return -1;
   }
-  printk(" done!\n");
+
+  // BLE Status led
+  ret = led_controller_set_bt_status_led();
+  if (ret < 0) {
+    return -1;
+  }
+
+  printk("[Led Controller] Led initialization done!\n");
+  return 0;
+}
+
+int led_controller_set_blinking_led() {
+  int ret;
+
+  ret = gpio_is_ready_dt(&led_blinking);
+  if (ret < 0) {
+    printk("[Led Controller] Unable to init blinking led (error code %i)\n", ret);
+    return -1;
+  }
+
+  ret = gpio_pin_configure_dt(&led_blinking, GPIO_OUTPUT_ACTIVE);
+  if (ret < 0) {
+    printk("[Led Controller] Unable to configure blinking led (error code %i)\n", ret);
+    return -2;
+  }
+
+  ret = gpio_pin_set_dt(&led_blinking, 0);
+  if (ret < 0) {
+    printk("[Led Controller] Unable to set blinking led to LOW (error code %i)\n", ret);
+    return -3;
+  }
+
+  return 0;
+}
+
+int led_controller_set_bt_status_led() {
+  int ret;
+
+  ret = gpio_is_ready_dt(&led_bt_status);
+  if (ret < 0) {
+    printk("[Led Controller] Unable to init BLE status led (error code %i)\n", ret);
+    return -1;
+  }
+
+  ret = gpio_pin_configure_dt(&led_bt_status, GPIO_OUTPUT_ACTIVE);
+  if (ret < 0) {
+    printk("[Led Controller] Unable to configure BLE status led (error code %i)\n", ret);
+    return -2;
+  }
+
+  ret = gpio_pin_set_dt(&led_bt_status, 0);
+  if (ret < 0) {
+    printk("[Led Controller] Unable to set BLE status led to LOW (error code %i)\n", ret);
+    return -3;
+  }
 
   return 0;
 }
@@ -70,27 +111,45 @@ int led_controller_init() {
 int led_controller_run_sequnce() {
   int ret;
   for (int i = 0; i < 8; i++) {
-    ret = gpio_pin_toggle_dt(&led[gSequence[i]]);
+    ret = gpio_pin_toggle_dt(&led_blinking);
     if (ret < 0) {
-      printk("[Led Controller] Unable to toggle led #%i (error code %i)\n", gSequence[i], ret);
+      printk("[Led Controller] Unable to toggle blinking led (error code %i)\n", ret);
       return -1;
     }
-    k_msleep(gTimeInterval);
+    k_msleep(g_sequence[i]);
   }
   return 0;
 }
 
-void led_controller_set_timeInterval(__uint16_t timeInterval) {
-  gTimeInterval = timeInterval;
+void led_controller_set_timeInterval(uint16_t timeInterval) {
+  g_time_interval = timeInterval;
   printk("[Led Controller] Setting time interval to %ims\n", timeInterval);
 }
 
-void led_controller_set_sequence(__uint8_t sequence[8]) {
+void led_controller_set_sequence(uint16_t sequence[8]) {
   printk("[Led Controller] Setting sequence to");
   for (int i = 0; i < 8; i++) {
     printk(" ");
-    gSequence[i] = sequence[i];
-    printk("#%i", sequence[i]);
+    g_sequence[i] = sequence[i];
+    printk("#%ims", sequence[i]);
   }
   printk("\n");
+}
+
+void led_controller_set_bt_connected() {
+  int ret;
+
+  ret = gpio_pin_set_dt(&led_bt_status, 1);
+  if (ret < 0) {
+    printk("[Led Controller] Unable to set BLE status led to HIGH (error code %i)\n", ret);
+  }
+}
+
+void led_controller_unset_bt_connected() {
+  int ret;
+
+  ret = gpio_pin_set_dt(&led_bt_status, 0);
+  if (ret < 0) {
+    printk("[Led Controller] Unable to set BLE status led to LOW (error code %i)\n", ret);
+  }
 }

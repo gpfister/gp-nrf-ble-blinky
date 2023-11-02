@@ -14,11 +14,16 @@
 #ifndef __LED_CONTROLLER_H__
 #define __LED_CONTROLLER_H__
 
-#include <stdlib.h>
+#include <zephyr/kernel.h>
 
 int led_controller_init();
+
 int led_controller_run_sequnce();
-void led_controller_set_timeInterval(__uint16_t timeInterval);
-void led_controller_set_sequence(__uint8_t sequence[8]);
+
+void led_controller_set_timeInterval(uint16_t time_interval);
+void led_controller_set_sequence(uint16_t sequence[8]);
+
+void led_controller_set_bt_connected();
+void led_controller_unset_bt_connected();
 
 #endif

@@ -11,7 +11,7 @@
 // SOFTWARE.
 //
 
-#include <stdlib.h>
+#include <zephyr/kernel.h>
 
 #include "controllers/ble_controller.h"
 #include "controllers/led_controller.h"
@@ -19,8 +19,8 @@
 int main(void) {
   // Define variables
   int ret;
-  __uint16_t timeInterval = 250;
-  __uint8_t sequence[8] = {0, 0, 1, 1, 2, 2, 3, 3};
+  uint16_t timeInterval = 250;
+  uint16_t sequence[8] = {100, 100, 100, 100, 100, 250, 250, 1000};
 
   // Initialise the leds
   ret = led_controller_init();
