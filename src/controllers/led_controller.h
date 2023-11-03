@@ -22,7 +22,7 @@ int led_controller_run_sequnce();
 
 const uint8_t *led_controller_get_led_status();
 const uint16_t *led_controller_get_led_sequence();
-void led_controller_set_led_sequence(uint16_t sequence[8]);
+void led_controller_set_led_sequence(const uint16_t *led_sequence);
 
 void led_controller_set_bt_connected();
 void led_controller_unset_bt_connected();

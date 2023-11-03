@@ -10,22 +10,29 @@
 This firmware allow to control the led 0 on the nRF52840 development kit using
 a BLE service (`826c9400-8f2f-4dc5-8319-d07b584cf83e`) which exposes 2
 characteristics:
-- `04df2644-e6b8-4541-8a7f-cecf67f365fe` (writable) the sequence of changes, in
-  the form of 8 consecutive time interval (from 0 to 65535ms)
+- `04df2644-e6b8-4541-8a7f-cecf67f365fe` (readable/writable) the sequence of 
+  changes, in the form of 8 consecutive time interval (from 0 to 65535ms)
 - `24b35ad0-d0f0-4811-bdfb-16d4451a514f` (readable) to inform about the led
   status.
 
 The default sequence is: 100ms, 100ms, 100ms, 100ms, 100ms, 500ms, 500ms, 500ms,
 (3 rapid short blink, 1 spaced long blink).
 
-The led 1 is used to display the BLE connection status (on: connected, 
-off: disconnected).
+On the development kit, the led 1 is used to display the BLE connection status 
+(on: connected, off: disconnected).
+
+## Supported boards
+
+Board used for development and testing:
+- Nordics nRF52840 USB Dongle
+- Nordics nRF52840 DK
 
 ## Test BLE
 
-To test, use an app like `LightBlue` to scan for a device named
-`Greg's nRF52840 Blinky` which advertises the service 
-`fefb5d60-994e-4d19-be43-d7849a807198`.
+Ideally, use the `nRF Connect for Desktop Bluetooth Low Energy`. Scan for a 
+device named `Greg's nRF52840 Blinky`.
+
+Alternatively, use an app like `LightBlue`.
 
 ## References
 

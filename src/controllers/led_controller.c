@@ -145,7 +145,7 @@ const uint16_t* led_controller_get_led_sequence() {
   return (const uint16_t*)g_led_sequence;
 }
 
-void led_controller_set_led_sequence(uint16_t led_sequence[8]) {
+void led_controller_set_led_sequence(const uint16_t* led_sequence) {
   // Save value
   printk("[Led Controller] Setting sequence to");
   for (int i = 0; i < 8; i++) {

@@ -27,6 +27,7 @@ void ble_controller_on_connected_cb(struct bt_conn *conn, uint8_t err);
 void ble_controller_on_disconnected_cb(struct bt_conn *conn, uint8_t reason);
 ssize_t ble_controller_on_read_blinky_led_sequence_characteristic_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr, void *buf, uint16_t len, uint16_t offset);
 ssize_t ble_controller_on_read_blinky_led_status_characteristic_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr, void *buf, uint16_t len, uint16_t offset);
+ssize_t ble_controller_on_write_blinky_led_sequence_characteristic_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr, const void *buf, uint16_t len, uint16_t offset, uint8_t flags);
 void ble_controller_on_blinky_led_sequence_ccc_changed_cb(const struct bt_gatt_attr *attr, uint16_t value);
 void ble_controller_on_blinky_led_status_ccc_changed_cb(const struct bt_gatt_attr *attr, uint16_t value);
 // size_t ble_controller_on_write_sequence_characteristic_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr, void *buf, uint16_t len, uint16_t offset);
@@ -64,10 +65,11 @@ static const struct bt_data g_ble_controller_scanning_data[] = {
 BT_GATT_SERVICE_DEFINE(g_ble_controller_blinky_service,
                        BT_GATT_PRIMARY_SERVICE(BLE_UUID_BLINKY_SERVICE),
                        BT_GATT_CHARACTERISTIC(BLE_UUID_BLINKY_CHARACTERISTIC_LED_SEQUENCE,
-                                              BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
-                                              BT_GATT_PERM_READ,
+                                              BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY | BT_GATT_CHRC_WRITE_WITHOUT_RESP,
+                                              BT_GATT_PERM_READ | BT_GATT_PERM_WRITE,
                                               ble_controller_on_read_blinky_led_sequence_characteristic_cb,
-                                              NULL, NULL),
+                                              ble_controller_on_write_blinky_led_sequence_characteristic_cb,
+                                              NULL),
                        BT_GATT_CCC(ble_controller_on_blinky_led_sequence_ccc_changed_cb, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
                        BT_GATT_CHARACTERISTIC(BLE_UUID_BLINKY_CHARACTERISTIC_LED_STATUS,
                                               BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
@@ -185,6 +187,29 @@ void ble_controller_on_disconnected_cb(struct bt_conn *conn, uint8_t reason) {
 ssize_t ble_controller_on_read_blinky_led_sequence_characteristic_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr, void *buf, uint16_t len, uint16_t offset) {
   printk("[BLE Controller] Reading led sequence...\n");
   return bt_gatt_attr_read(conn, attr, buf, len, offset, led_controller_get_led_sequence(), 8 * sizeof(uint16_t));
+}
+
+ssize_t ble_controller_on_write_blinky_led_sequence_characteristic_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr, const void *buf, uint16_t len, uint16_t offset, uint8_t flags) {
+  printk("[BLE Controller] Received Blinky Led Sequence Data on handle %d & conn %p", attr->handle, (void *)conn);
+
+  if (len != 8 * sizeof(uint16_t)) {
+    printk("[BLE Controller] Invalid Blinky Led Sequence received (expected 8 bytes, received %i bytes)", len);
+  } else {
+    char output_str[(8 * 6) + 8];
+    sprintf(output_str,
+            "0x%4x 0x%4x 0x%4x 0x%4x 0x%4x 0x%4x 0x%4x 0x%4x",
+            (const uint16_t)((const uint16_t *)buf)[0],
+            (const uint16_t)((const uint16_t *)buf)[1],
+            (const uint16_t)((const uint16_t *)buf)[2],
+            (const uint16_t)((const uint16_t *)buf)[3],
+            (const uint16_t)((const uint16_t *)buf)[4],
+            (const uint16_t)((const uint16_t *)buf)[5],
+            (const uint16_t)((const uint16_t *)buf)[6],
+            (const uint16_t)((const uint16_t *)buf)[7]);
+    printk("[BLE Controller] Received output: %s\n", output_str);
+    led_controller_set_led_sequence((const uint16_t *)buf);
+  }
+  return len;
 }
 
 /**
