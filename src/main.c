@@ -19,8 +19,7 @@
 int main(void) {
   // Define variables
   int ret;
-  uint16_t timeInterval = 250;
-  uint16_t sequence[8] = {100, 100, 100, 100, 100, 250, 250, 1000};
+  uint16_t sequence[8] = {100, 100, 100, 100, 100, 500, 500, 500};
 
   // Initialise the leds
   ret = led_controller_init();
@@ -29,8 +28,7 @@ int main(void) {
   }
 
   // Set time interval and sequence
-  led_controller_set_timeInterval(timeInterval);
-  led_controller_set_sequence(sequence);
+  led_controller_set_led_sequence(sequence);
 
   // Initializing BLE
   ret = ble_controller_init();

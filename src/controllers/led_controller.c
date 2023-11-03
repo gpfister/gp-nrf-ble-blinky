@@ -16,28 +16,31 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
 
-/* Define led nodes */
-#define LED0_NODE DT_ALIAS(led0)
-#define LED1_NODE DT_ALIAS(led1)
-#define LED2_NODE DT_ALIAS(led2)
-#define LED3_NODE DT_ALIAS(led3)
+#include "ble_controller.h"
 
-/* Declarations */
+/* Declarations ***************************************************************/
+
 int led_controller_set_blinking_led();
 int led_controller_set_bt_status_led();
 
-/*
- * A build error on this line means your board is unsupported.
- * See the sample documentation for information on how to fix this.
- */
+/* Define led nodes ***********************************************************/
+
+#define LED0_NODE DT_ALIAS(led0)
 static const struct gpio_dt_spec led_blinking = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
+#define LED1_NODE DT_ALIAS(led1)
 static const struct gpio_dt_spec led_bt_status = GPIO_DT_SPEC_GET(LED1_NODE, gpios);
+// #define LED2_NODE DT_ALIAS(led2)
+// #define LED3_NODE DT_ALIAS(led3)
 
-/* Sequence */
-uint16_t g_sequence[8] = {1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000};
+/* Sequence *******************************************************************/
 
-/* Time interval */
-uint16_t g_time_interval = 1000;
+uint16_t g_led_sequence[8] = {1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000};
+
+/* Led status *****************************************************************/
+
+uint8_t g_led_status = 0;
+
+/* Led initialization *********************************************************/
 
 int led_controller_init() {
   int ret;
@@ -108,33 +111,55 @@ int led_controller_set_bt_status_led() {
   return 0;
 }
 
+/* Run led sequence ***********************************************************/
+
 int led_controller_run_sequnce() {
   int ret;
   for (int i = 0; i < 8; i++) {
-    ret = gpio_pin_toggle_dt(&led_blinking);
+    // Set the led status
+    g_led_status = (g_led_status + 1) % 2;
+    ret = gpio_pin_set_dt(&led_blinking, g_led_status);
     if (ret < 0) {
-      printk("[Led Controller] Unable to toggle blinking led (error code %i)\n", ret);
+      printk("[Led Controller] Unable to set blinking led to %s (error code %i)\n", g_led_status > 0 ? "HIGH" : "LOW", ret);
       return -1;
     }
-    k_msleep(g_sequence[i]);
+
+    // Update BLE Blinky Led Status value
+    ble_controller_update_blinky_led_status_value(&g_led_status);
+
+    // Sleep
+    k_msleep(g_led_sequence[i]);
   }
   return 0;
 }
 
-void led_controller_set_timeInterval(uint16_t timeInterval) {
-  g_time_interval = timeInterval;
-  printk("[Led Controller] Setting time interval to %ims\n", timeInterval);
+/* Led status getter **********************************************************/
+
+const uint8_t* led_controller_get_led_status() {
+  return (const uint8_t*)&g_led_status;
 }
 
-void led_controller_set_sequence(uint16_t sequence[8]) {
+/* Led sequence getter/setter *************************************************/
+
+const uint16_t* led_controller_get_led_sequence() {
+  return (const uint16_t*)g_led_sequence;
+}
+
+void led_controller_set_led_sequence(uint16_t led_sequence[8]) {
+  // Save value
   printk("[Led Controller] Setting sequence to");
   for (int i = 0; i < 8; i++) {
     printk(" ");
-    g_sequence[i] = sequence[i];
-    printk("#%ims", sequence[i]);
+    g_led_sequence[i] = led_sequence[i];
+    printk("#%ims", led_sequence[i]);
   }
   printk("\n");
+
+  // Update BLE Blinky Led Sequence characteristic value
+  ble_controller_update_blinky_led_sequence_value(g_led_sequence);
 }
+
+/* Control BLE status led *****************************************************/
 
 void led_controller_set_bt_connected() {
   int ret;

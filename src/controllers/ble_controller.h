@@ -14,8 +14,11 @@
 #ifndef __BLE_CONTROLLER_H__
 #define __BLE_CONTROLLER_H__
 
-#include <stdlib.h>
+#include <zephyr/kernel.h>
 
 int ble_controller_init();
+
+void ble_controller_update_blinky_led_sequence_value(const uint16_t *led_sequence);
+void ble_controller_update_blinky_led_status_value(const uint8_t *led_status);
 
 #endif

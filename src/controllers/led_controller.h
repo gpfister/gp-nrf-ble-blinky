@@ -20,8 +20,9 @@ int led_controller_init();
 
 int led_controller_run_sequnce();
 
-void led_controller_set_timeInterval(uint16_t time_interval);
-void led_controller_set_sequence(uint16_t sequence[8]);
+const uint8_t *led_controller_get_led_status();
+const uint16_t *led_controller_get_led_sequence();
+void led_controller_set_led_sequence(uint16_t sequence[8]);
 
 void led_controller_set_bt_connected();
 void led_controller_unset_bt_connected();

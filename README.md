@@ -7,24 +7,19 @@
 
 ## About
 
-This firmware allow to control the leds on the nRF52840 development kit using
-a BLE service (`826c9400-8f2f-4dc5-8319-d07b584cf83e`) which exposes 3
+This firmware allow to control the led 0 on the nRF52840 development kit using
+a BLE service (`826c9400-8f2f-4dc5-8319-d07b584cf83e`) which exposes 2
 characteristics:
-- `04df2644-e6b8-4541-8a7f-cecf67f365fe` (writable) to set the time interval 
-  from 0 to 65535ms (2 bytes) between each led changes.
-- `7656d6e9-46da-425a-8c9e-4fa2becdf619` (writable) to set the leds on/off 
-  toggling sequence. The sequence is compose of 8 bytes, on for each of the led 
-  (from 0 to 3) which would be turned on/off after waiting for the time 
-  interval.
-- `24b35ad0-d0f0-4811-bdfb-16d4451a514f` (readable) to inform about the leds
+- `04df2644-e6b8-4541-8a7f-cecf67f365fe` (writable) the sequence of changes, in
+  the form of 8 consecutive time interval (from 0 to 65535ms)
+- `24b35ad0-d0f0-4811-bdfb-16d4451a514f` (readable) to inform about the led
   status.
 
-It only changes the state of one led each time.
+The default sequence is: 100ms, 100ms, 100ms, 100ms, 100ms, 500ms, 500ms, 500ms,
+(3 rapid short blink, 1 spaced long blink).
 
-The default time interval is 250ms.
-
-The default sequence is: `led 0`, `led 0`, `led 1`, `led 1`, `led 2`, `led 2`,
-`led 3`, `led 3`.
+The led 1 is used to display the BLE connection status (on: connected, 
+off: disconnected).
 
 ## Test BLE
 
