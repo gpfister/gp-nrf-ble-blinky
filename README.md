@@ -10,13 +10,22 @@
 This firmware allow to control the led 0 on the nRF52840 development kit using
 a BLE service (`826c9400-8f2f-4dc5-8319-d07b584cf83e`) which exposes 2
 characteristics:
-- `04df2644-e6b8-4541-8a7f-cecf67f365fe` (readable/writable) the sequence of 
-  changes, in the form of 8 consecutive time interval (from 0 to 65535ms)
+- `04df2644-e6b8-4541-8a7f-cecf67f365fe` (readable/writable) the selected 
+  sequence for the blinking light.
 - `24b35ad0-d0f0-4811-bdfb-16d4451a514f` (readable) to inform about the led
   status.
 
-The default sequence is: 100ms, 100ms, 100ms, 100ms, 100ms, 500ms, 500ms, 500ms,
-(3 rapid short blink, 1 spaced long blink).
+8 sequences are defined for the blinking led:
+
+1. 16 random (between 100 and 3000ms)
+2. short: 100ms on, 100ms off
+3. long: 500ms on, 500ms off
+4. very long: 1s on, 1s off
+5. short/long/very long: 100ms, 500ms, 1000ms
+6. S.O.S: 3 short blinks (100ms), 3 long blink (500ms), 3 short blinks (100ms) 
+   again and long pause 2s
+7. Wave: 100->200->300->400->500->400->300->200->100ms
+8. Stabilizing: 100->500->200->400->300
 
 On the development kit, the led 1 is used to display the BLE connection status 
 (on: connected, off: disconnected).

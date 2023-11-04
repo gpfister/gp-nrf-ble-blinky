@@ -12,36 +12,68 @@
 //
 
 #include <zephyr/kernel.h>
+#include <zephyr/logging/log.h>
+
+#include <app_version.h>
+
+// #include <ble_controller/ble_controller.h>
+// #include <led_controller/led_controller.h>
 
 #include "controllers/ble_controller.h"
 #include "controllers/led_controller.h"
 
-int main(void) {
-  // Define variables
-  int ret;
-  uint16_t sequence[8] = {100, 100, 100, 100, 100, 500, 500, 500};
+/* Logger *********************************************************************/
 
-  // Initialise the leds
-  ret = led_controller_init();
-  if (ret < 0) {
-    return -1;
-  }
+LOG_MODULE_REGISTER(main, CONFIG_LOG_DEFAULT_LEVEL);
 
-  // Set time interval and sequence
-  led_controller_set_led_sequence(sequence);
+/* Declarations ***************************************************************/
 
-  // Initializing BLE
-  ret = ble_controller_init();
-  if (ret < 0) {
-    return -2;
-  }
+void printInfo();
 
-  // Main loop
-  while (1) {
-    ret = led_controller_run_sequnce();
+/* Main ***********************************************************************/
+
+int main(void)
+{
+    // Print informations about the app
+    printInfo();
+
+    // Define variables
+    int ret;
+
+    // Initialise the leds
+    ret = led_controller_init();
     if (ret < 0) {
-      return -3;
+        return -1;
     }
-  }
-  return 0;
+
+    // Initializing BLE
+    ret = ble_controller_init();
+    if (ret < 0) {
+        return -2;
+    }
+
+    // Main loop
+    while (1) {
+        ret = led_controller_run_sequence();
+        if (ret < 0) {
+            LOG_WRN("Exiting main loop because of an error");
+            break;
+        }
+    }
+
+    k_msleep(1000);
+    return 0;
+}
+
+/* Informations ***************************************************************/
+
+void printInfo()
+{
+    uint32_t ver = sys_kernel_version_get();
+    LOG_INF("Welcome to BLE Blinky Peripheral");
+    LOG_INF("Copyright (c) 2023, Greg PFISTER. MIT License.");
+    LOG_INF("Firmware version: %s", APP_VERSION_STRING);
+    LOG_INF("Target board: %s", CONFIG_BOARD);
+    LOG_INF("Zephy Kernel version: %i.%i.%i", SYS_KERNEL_VER_MAJOR(ver), SYS_KERNEL_VER_MINOR(ver),
+            SYS_KERNEL_VER_PATCHLEVEL(ver));
 }

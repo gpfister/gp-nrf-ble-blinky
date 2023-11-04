@@ -12,31 +12,43 @@
 //
 
 #include "ble_controller.h"
+#include "led_controller.h"
 
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/bluetooth/gatt.h>
 #include <zephyr/bluetooth/hci.h>
 #include <zephyr/bluetooth/uuid.h>
+#include <zephyr/logging/log.h>
 
-#include "led_controller.h"
+/* Logger *********************************************************************/
+
+LOG_MODULE_REGISTER(ble_controller, CONFIG_LOG_DEFAULT_LEVEL);
 
 /* Internal declarations ******************************************************/
 
 void ble_controller_bt_ready_cb(int err);
 void ble_controller_on_connected_cb(struct bt_conn *conn, uint8_t err);
 void ble_controller_on_disconnected_cb(struct bt_conn *conn, uint8_t reason);
-ssize_t ble_controller_on_read_blinky_led_sequence_characteristic_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr, void *buf, uint16_t len, uint16_t offset);
-ssize_t ble_controller_on_read_blinky_led_status_characteristic_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr, void *buf, uint16_t len, uint16_t offset);
-ssize_t ble_controller_on_write_blinky_led_sequence_characteristic_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr, const void *buf, uint16_t len, uint16_t offset, uint8_t flags);
+ssize_t ble_controller_on_read_blinky_led_sequence_characteristic_cb(struct bt_conn *conn,
+                                                                     const struct bt_gatt_attr *attr, void *buf,
+                                                                     uint16_t len, uint16_t offset);
+ssize_t ble_controller_on_read_blinky_led_status_characteristic_cb(struct bt_conn *conn,
+                                                                   const struct bt_gatt_attr *attr, void *buf,
+                                                                   uint16_t len, uint16_t offset);
+ssize_t ble_controller_on_write_blinky_led_sequence_characteristic_cb(struct bt_conn *conn,
+                                                                      const struct bt_gatt_attr *attr, const void *buf,
+                                                                      uint16_t len, uint16_t offset, uint8_t flags);
 void ble_controller_on_blinky_led_sequence_ccc_changed_cb(const struct bt_gatt_attr *attr, uint16_t value);
 void ble_controller_on_blinky_led_status_ccc_changed_cb(const struct bt_gatt_attr *attr, uint16_t value);
-// size_t ble_controller_on_write_sequence_characteristic_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr, void *buf, uint16_t len, uint16_t offset);
+// size_t ble_controller_on_write_sequence_characteristic_cb(struct bt_conn
+// *conn, const struct bt_gatt_attr *attr, void *buf, uint16_t len, uint16_t
+// offset);
 void ble_controller_on_blinky_led_sequence_data_sent_cb(struct bt_conn *conn, void *user_data);
 void ble_controller_on_blinky_led_status_data_sent_cb(struct bt_conn *conn, void *user_data);
 
 /* Advertizing data ***********************************************************/
 
-#define DEVICE_NAME CONFIG_BT_DEVICE_NAME
+#define DEVICE_NAME     CONFIG_BT_DEVICE_NAME
 #define DEVICE_NAME_LEN (sizeof(DEVICE_NAME) - 1)
 static const struct bt_data g_ble_controller_advertizing_data[] = {
     // Flags: BLE, no classic
@@ -48,7 +60,7 @@ static const struct bt_data g_ble_controller_advertizing_data[] = {
 /* Scanning data **************************************************************/
 
 #define BLE_UUID_ADVERTISED_SERVICE_VAL BT_UUID_128_ENCODE(0xfefb5d60, 0x994e, 0x4d19, 0xbe43, 0xd7849a807198)
-#define BLE_UUID_ADVERTISED_SERVICE BT_UUID_DECLARE_128(BLE_UUID_ADVERTISED_SERVICE_VAL)
+#define BLE_UUID_ADVERTISED_SERVICE     BT_UUID_DECLARE_128(BLE_UUID_ADVERTISED_SERVICE_VAL)
 static const struct bt_data g_ble_controller_scanning_data[] = {
     // Advertised service
     BT_DATA_BYTES(BT_DATA_UUID128_ALL, BLE_UUID_ADVERTISED_SERVICE_VAL),
@@ -57,35 +69,35 @@ static const struct bt_data g_ble_controller_scanning_data[] = {
 /* Service and characteristics UUID *******************************************/
 
 #define BLE_UUID_BLINKY_SERVICE_VAL BT_UUID_128_ENCODE(0x826c9400, 0x8f2f, 0x4dc5, 0x8319, 0xd07b584cf83)
-#define BLE_UUID_BLINKY_SERVICE BT_UUID_DECLARE_128(BLE_UUID_BLINKY_SERVICE_VAL)
-#define BLE_UUID_BLINKY_CHARACTERISTIC_LED_SEQUENCE_VAL BT_UUID_128_ENCODE(0x7656d6e9, 0x46da, 0x425a, 0x8c9e, 0x4fa2becdf619)
+#define BLE_UUID_BLINKY_SERVICE     BT_UUID_DECLARE_128(BLE_UUID_BLINKY_SERVICE_VAL)
+#define BLE_UUID_BLINKY_CHARACTERISTIC_LED_SEQUENCE_VAL                                                                \
+    BT_UUID_128_ENCODE(0x7656d6e9, 0x46da, 0x425a, 0x8c9e, 0x4fa2becdf619)
 #define BLE_UUID_BLINKY_CHARACTERISTIC_LED_SEQUENCE BT_UUID_DECLARE_128(BLE_UUID_BLINKY_CHARACTERISTIC_LED_SEQUENCE_VAL)
-#define BLE_UUID_BLINKY_CHARACTERISTIC_LED_STATUS_VAL BT_UUID_128_ENCODE(0x24b35ad0, 0xd0f0, 0x4811, 0xbdfb, 0x16d4451a514f)
+#define BLE_UUID_BLINKY_CHARACTERISTIC_LED_STATUS_VAL                                                                  \
+    BT_UUID_128_ENCODE(0x24b35ad0, 0xd0f0, 0x4811, 0xbdfb, 0x16d4451a514f)
 #define BLE_UUID_BLINKY_CHARACTERISTIC_LED_STATUS BT_UUID_DECLARE_128(BLE_UUID_BLINKY_CHARACTERISTIC_LED_STATUS_VAL)
-BT_GATT_SERVICE_DEFINE(g_ble_controller_blinky_service,
-                       BT_GATT_PRIMARY_SERVICE(BLE_UUID_BLINKY_SERVICE),
-                       BT_GATT_CHARACTERISTIC(BLE_UUID_BLINKY_CHARACTERISTIC_LED_SEQUENCE,
-                                              BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY | BT_GATT_CHRC_WRITE_WITHOUT_RESP,
-                                              BT_GATT_PERM_READ | BT_GATT_PERM_WRITE,
-                                              ble_controller_on_read_blinky_led_sequence_characteristic_cb,
-                                              ble_controller_on_write_blinky_led_sequence_characteristic_cb,
-                                              NULL),
-                       BT_GATT_CCC(ble_controller_on_blinky_led_sequence_ccc_changed_cb, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
-                       BT_GATT_CHARACTERISTIC(BLE_UUID_BLINKY_CHARACTERISTIC_LED_STATUS,
-                                              BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
-                                              BT_GATT_PERM_READ,
-                                              ble_controller_on_read_blinky_led_status_characteristic_cb,
-                                              NULL, NULL),
-                       BT_GATT_CCC(ble_controller_on_blinky_led_status_ccc_changed_cb, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE));
+BT_GATT_SERVICE_DEFINE(
+    g_ble_controller_blinky_service, BT_GATT_PRIMARY_SERVICE(BLE_UUID_BLINKY_SERVICE),
+    BT_GATT_CHARACTERISTIC(BLE_UUID_BLINKY_CHARACTERISTIC_LED_SEQUENCE,
+                           BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY | BT_GATT_CHRC_WRITE_WITHOUT_RESP,
+                           BT_GATT_PERM_READ | BT_GATT_PERM_WRITE,
+                           ble_controller_on_read_blinky_led_sequence_characteristic_cb,
+                           ble_controller_on_write_blinky_led_sequence_characteristic_cb, NULL),
+    BT_GATT_CCC(ble_controller_on_blinky_led_sequence_ccc_changed_cb, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE),
+    BT_GATT_CHARACTERISTIC(BLE_UUID_BLINKY_CHARACTERISTIC_LED_STATUS, BT_GATT_CHRC_READ | BT_GATT_CHRC_NOTIFY,
+                           BT_GATT_PERM_READ, ble_controller_on_read_blinky_led_status_characteristic_cb, NULL, NULL),
+    BT_GATT_CCC(ble_controller_on_blinky_led_status_ccc_changed_cb, BT_GATT_PERM_READ | BT_GATT_PERM_WRITE));
 
 /* Notifications **************************************************************/
 
 typedef enum _ble_controller_notification_status {
-  BLE_CONTROLLER_NOTIFICATION_STATUS_ENABLED,
-  BLE_CONTROLLER_NOTIFICATION_STATUS_DISABLED,
+    BLE_CONTROLLER_NOTIFICATION_STATUS_ENABLED,
+    BLE_CONTROLLER_NOTIFICATION_STATUS_DISABLED,
 } ble_controller_notification_status;
-static ble_controller_notification_status g_ble_controller_blinky_led_sequence_notifications_status = BLE_CONTROLLER_NOTIFICATION_STATUS_DISABLED;
-static ble_controller_notification_status g_ble_controller_blinky_led_status_notifications_status = BLE_CONTROLLER_NOTIFICATION_STATUS_DISABLED;
+static ble_controller_notification_status g_ble_controller_blinky_led_sequence_notifications_status =
+    BLE_CONTROLLER_NOTIFICATION_STATUS_DISABLED;
+static ble_controller_notification_status g_ble_controller_blinky_led_status_notifications_status =
+    BLE_CONTROLLER_NOTIFICATION_STATUS_DISABLED;
 
 /* BLE connection *************************************************************/
 
@@ -106,31 +118,34 @@ static struct bt_conn *g_current_conn;
 /**
  * Initializes the BLE connection
  */
-int ble_controller_init() {
-  int ret;
+int ble_controller_init()
+{
+    int ret;
 
-  // Register callbacks
-  bt_conn_cb_register(&g_connection_callback);
+    // Register callbacks
+    bt_conn_cb_register(&g_connection_callback);
 
-  // Unale BLE
-  printk("[BLE Controller] Intializing BLE...\n");
-  ret = bt_enable(ble_controller_bt_ready_cb);
-  if (ret < 0) {
-    printk("[BLE Controller] Unable enable Bluetooth (error code %i)\n", ret);
-    return -1;
-  }
+    // Unale BLE
+    LOG_INF("Intializing BLE...");
+    ret = bt_enable(ble_controller_bt_ready_cb);
+    if (ret < 0) {
+        LOG_ERR("Unable enable Bluetooth (error code %i)", ret);
+        return -1;
+    }
 
-  // Wait for BLE to be initialized
-  k_sem_take(&g_ble_init_ok, K_FOREVER);
+    // Wait for BLE to be initialized
+    k_sem_take(&g_ble_init_ok, K_FOREVER);
 
-  // Advertize
-  ret = bt_le_adv_start(BT_LE_ADV_CONN, g_ble_controller_advertizing_data, ARRAY_SIZE(g_ble_controller_advertizing_data), g_ble_controller_scanning_data, ARRAY_SIZE(g_ble_controller_scanning_data));
-  if (ret < 0) {
-    printk("[BLE Controller] Unable to start advertizing (error code %i)\n", ret);
-    return -2;
-  }
+    // Advertize
+    ret = bt_le_adv_start(BT_LE_ADV_CONN, g_ble_controller_advertizing_data,
+                          ARRAY_SIZE(g_ble_controller_advertizing_data), g_ble_controller_scanning_data,
+                          ARRAY_SIZE(g_ble_controller_scanning_data));
+    if (ret < 0) {
+        LOG_ERR("Unable to start advertizing (error code %i)", ret);
+        return -2;
+    }
 
-  return 0;
+    return 0;
 }
 
 /* Callbacks ******************************************************************/
@@ -138,158 +153,170 @@ int ble_controller_init() {
 /**
  * Callback when the BLE stack is ready
  */
-void ble_controller_bt_ready_cb(int err) {
-  if (err) {
-    printk("[BLE Controller] BLE initialization failed with return code %i!\n", err);
-  } else {
-    printk("[BLE Controller] BLE initialization done!\n");
-  }
+void ble_controller_bt_ready_cb(int err)
+{
+    if (err) {
+        LOG_ERR("BLE initialization failed with return code %i!", err);
+    } else {
+        LOG_INF("BLE initialization done!");
+    }
 
-  k_sem_give(&g_ble_init_ok);
+    k_sem_give(&g_ble_init_ok);
 }
 
 /**
  * When a central connects to the device
  */
-void ble_controller_on_connected_cb(struct bt_conn *conn, uint8_t err) {
-  if (err) {
-    printk("[BLE Controller] Unable to connect (error code %i)\n", err);
-    return;
-  }
+void ble_controller_on_connected_cb(struct bt_conn *conn, uint8_t err)
+{
+    if (err) {
+        LOG_ERR("Unable to connect (error code %i)", err);
+        return;
+    }
 
-  // Reference current connection
-  g_current_conn = bt_conn_ref(conn);
-  printk("[BLE Controller] Device connected\n");
+    // Reference current connection
+    g_current_conn = bt_conn_ref(conn);
+    LOG_INF("Device connected %p", (void *)g_current_conn);
 
-  // Set led indicating BLE central is connected
-  led_controller_set_bt_connected();
+    // Set led indicating BLE central is connected
+    led_controller_set_bt_connected();
 }
 
 /**
  * When the central disconnects from the device
  */
-void ble_controller_on_disconnected_cb(struct bt_conn *conn, uint8_t reason) {
-  printk("[BLE Controller] Device disconnected (reason code %i)\n", reason);
+void ble_controller_on_disconnected_cb(struct bt_conn *conn, uint8_t reason)
+{
+    LOG_INF("Device disconnected (reason code %i)", reason);
 
-  // If there was an active connect, unreference it
-  if (g_current_conn) {
-    bt_conn_unref(g_current_conn);
-    g_current_conn = NULL;
-  }
+    // If there was an active connect, unreference it
+    if (g_current_conn) {
+        bt_conn_unref(g_current_conn);
+        g_current_conn = NULL;
+    }
 
-  // Unset led BLE indicating BLE central is connected
-  led_controller_unset_bt_connected();
+    // Unset led BLE indicating BLE central is connected
+    led_controller_unset_bt_connected();
 }
 
 /**
  * Read the led sequence value
  */
-ssize_t ble_controller_on_read_blinky_led_sequence_characteristic_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr, void *buf, uint16_t len, uint16_t offset) {
-  printk("[BLE Controller] Reading led sequence...\n");
-  return bt_gatt_attr_read(conn, attr, buf, len, offset, led_controller_get_led_sequence(), 8 * sizeof(uint16_t));
+ssize_t ble_controller_on_read_blinky_led_sequence_characteristic_cb(struct bt_conn *conn,
+                                                                     const struct bt_gatt_attr *attr, void *buf,
+                                                                     uint16_t len, uint16_t offset)
+{
+    LOG_DBG("Reading led sequence...");
+    return bt_gatt_attr_read(conn, attr, buf, len, offset, led_controller_get_selected_led_sequence(), sizeof(uint8_t));
 }
 
-ssize_t ble_controller_on_write_blinky_led_sequence_characteristic_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr, const void *buf, uint16_t len, uint16_t offset, uint8_t flags) {
-  printk("[BLE Controller] Received Blinky Led Sequence Data on handle %d & conn %p", attr->handle, (void *)conn);
+ssize_t ble_controller_on_write_blinky_led_sequence_characteristic_cb(struct bt_conn *conn,
+                                                                      const struct bt_gatt_attr *attr, const void *buf,
+                                                                      uint16_t len, uint16_t offset, uint8_t flags)
+{
+    LOG_DBG("Received Blinky Led Sequence Data on handle %d & conn %p", attr->handle, (void *)conn);
 
-  if (len != 8 * sizeof(uint16_t)) {
-    printk("[BLE Controller] Invalid Blinky Led Sequence received (expected 8 bytes, received %i bytes)", len);
-  } else {
-    char output_str[(8 * 6) + 8];
-    sprintf(output_str,
-            "0x%4x 0x%4x 0x%4x 0x%4x 0x%4x 0x%4x 0x%4x 0x%4x",
-            (const uint16_t)((const uint16_t *)buf)[0],
-            (const uint16_t)((const uint16_t *)buf)[1],
-            (const uint16_t)((const uint16_t *)buf)[2],
-            (const uint16_t)((const uint16_t *)buf)[3],
-            (const uint16_t)((const uint16_t *)buf)[4],
-            (const uint16_t)((const uint16_t *)buf)[5],
-            (const uint16_t)((const uint16_t *)buf)[6],
-            (const uint16_t)((const uint16_t *)buf)[7]);
-    printk("[BLE Controller] Received output: %s\n", output_str);
-    led_controller_set_led_sequence((const uint16_t *)buf);
-  }
-  return len;
+    if (len != sizeof(uint8_t)) {
+        LOG_ERR("Invalid Blinky Led Sequence received (expected %i bytes, "
+                "received %i bytes)",
+                sizeof(uint8_t), len);
+    } else {
+        const uint8_t *value = buf;
+        led_controller_set_selected_led_sequence(*value);
+        LOG_HEXDUMP_DBG(buf, len, "Blinky Led Sequence value received");
+    }
+    return len;
 }
 
 /**
  * Read the led status value
  */
-ssize_t ble_controller_on_read_blinky_led_status_characteristic_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr, void *buf, uint16_t len, uint16_t offset) {
-  printk("[BLE Controller] Reading led status...\n");
-  return bt_gatt_attr_read(conn, attr, buf, len, offset, led_controller_get_led_status(), 1 * sizeof(uint8_t));
+ssize_t ble_controller_on_read_blinky_led_status_characteristic_cb(struct bt_conn *conn,
+                                                                   const struct bt_gatt_attr *attr, void *buf,
+                                                                   uint16_t len, uint16_t offset)
+{
+    LOG_DBG("Reading led status...");
+    return bt_gatt_attr_read(conn, attr, buf, len, offset, led_controller_get_led_status(), 1 * sizeof(uint8_t));
 }
 
 /**
  * Handle notification status changed
  */
-void ble_controller_on_blinky_led_sequence_ccc_changed_cb(const struct bt_gatt_attr *attr, uint16_t value) {
-  bool notif_enabled = (value == BT_GATT_CCC_NOTIFY);
-  printk("[BLE Controller] Blinky led sequence characteristics notifications %s\n", notif_enabled ? "enabled" : "disabled");
-  g_ble_controller_blinky_led_sequence_notifications_status = notif_enabled ? BLE_CONTROLLER_NOTIFICATION_STATUS_ENABLED : BLE_CONTROLLER_NOTIFICATION_STATUS_DISABLED;
+void ble_controller_on_blinky_led_sequence_ccc_changed_cb(const struct bt_gatt_attr *attr, uint16_t value)
+{
+    bool notif_enabled = (value == BT_GATT_CCC_NOTIFY);
+    LOG_DBG("Blinky led sequence characteristics notifications %s", notif_enabled ? "enabled" : "disabled");
+    g_ble_controller_blinky_led_sequence_notifications_status =
+        notif_enabled ? BLE_CONTROLLER_NOTIFICATION_STATUS_ENABLED : BLE_CONTROLLER_NOTIFICATION_STATUS_DISABLED;
 }
 
 /**
  * Handle notification status changed
  */
-void ble_controller_on_blinky_led_status_ccc_changed_cb(const struct bt_gatt_attr *attr, uint16_t value) {
-  bool notif_enabled = (value == BT_GATT_CCC_NOTIFY);
-  printk("[BLE Controller] Blinky led sequence status notifications %s\n", notif_enabled ? "enabled" : "disabled");
-  g_ble_controller_blinky_led_status_notifications_status = notif_enabled ? BLE_CONTROLLER_NOTIFICATION_STATUS_ENABLED : BLE_CONTROLLER_NOTIFICATION_STATUS_DISABLED;
+void ble_controller_on_blinky_led_status_ccc_changed_cb(const struct bt_gatt_attr *attr, uint16_t value)
+{
+    bool notif_enabled = (value == BT_GATT_CCC_NOTIFY);
+    LOG_DBG("Blinky led sequence status notifications %s", notif_enabled ? "enabled" : "disabled");
+    g_ble_controller_blinky_led_status_notifications_status =
+        notif_enabled ? BLE_CONTROLLER_NOTIFICATION_STATUS_ENABLED : BLE_CONTROLLER_NOTIFICATION_STATUS_DISABLED;
 }
 
 /**
  *
  */
-void ble_controller_on_blinky_led_sequence_data_sent_cb(struct bt_conn *conn, void *user_data) {
-  ARG_UNUSED(user_data);
-  printk("[BLE Controller] Blinky Led Sequence data sent on connection %p\n", (void *)conn);
+void ble_controller_on_blinky_led_sequence_data_sent_cb(struct bt_conn *conn, void *user_data)
+{
+    ARG_UNUSED(user_data);
+    LOG_DBG("Blinky Led Sequence data sent on connection %p", (void *)conn);
 }
 
 /**
  *
  */
-void ble_controller_on_blinky_led_status_data_sent_cb(struct bt_conn *conn, void *user_data) {
-  ARG_UNUSED(user_data);
-  printk("[BLE Controller] Blinky Led Status data sent on connection %p\n", (void *)conn);
+void ble_controller_on_blinky_led_status_data_sent_cb(struct bt_conn *conn, void *user_data)
+{
+    ARG_UNUSED(user_data);
+    LOG_DBG("Blinky Led Status data sent on connection %p", (void *)conn);
 }
 
 /* Update characteristic values ***********************************************/
 
-void ble_controller_update_blinky_led_sequence_value(const uint16_t *led_sequence) {
-  int err;
-  if (g_ble_controller_blinky_led_sequence_notifications_status == BLE_CONTROLLER_NOTIFICATION_STATUS_ENABLED) {
-    struct bt_gatt_notify_params params = {0};
-    const struct bt_gatt_attr *attr = &g_ble_controller_blinky_service.attrs[2];
+void ble_controller_update_blinky_led_sequence_value(const uint16_t *led_sequence)
+{
+    int err;
+    if (g_ble_controller_blinky_led_sequence_notifications_status == BLE_CONTROLLER_NOTIFICATION_STATUS_ENABLED) {
+        struct bt_gatt_notify_params params = {0};
+        const struct bt_gatt_attr *attr = &g_ble_controller_blinky_service.attrs[2];
 
-    params.attr = attr;
-    params.data = led_sequence;
-    params.len = 8 * sizeof(uint16_t);
-    params.func = ble_controller_on_blinky_led_sequence_data_sent_cb;
+        params.attr = attr;
+        params.data = led_sequence;
+        params.len = sizeof(uint8_t);
+        params.func = ble_controller_on_blinky_led_sequence_data_sent_cb;
 
-    err = bt_gatt_notify_cb(g_current_conn, &params);
-    if (err) {
-      printk("[BLE Controller] Unable to push Blinky Led Sequence update (error code %i)\n", err);
-      return;
+        err = bt_gatt_notify_cb(g_current_conn, &params);
+        if (err) {
+            LOG_ERR("Unable to push Blinky Led Sequence update (error code %i)", err);
+            return;
+        }
     }
-  }
 }
 
-void ble_controller_update_blinky_led_status_value(const uint8_t *led_status) {
-  int err;
-  if (g_ble_controller_blinky_led_status_notifications_status == BLE_CONTROLLER_NOTIFICATION_STATUS_ENABLED) {
-    struct bt_gatt_notify_params params = {0};
-    const struct bt_gatt_attr *attr = &g_ble_controller_blinky_service.attrs[4];
+void ble_controller_update_blinky_led_status_value(const uint8_t *led_status)
+{
+    int err;
+    if (g_ble_controller_blinky_led_status_notifications_status == BLE_CONTROLLER_NOTIFICATION_STATUS_ENABLED) {
+        struct bt_gatt_notify_params params = {0};
+        const struct bt_gatt_attr *attr = &g_ble_controller_blinky_service.attrs[4];
 
-    params.attr = attr;
-    params.data = led_status;
-    params.len = sizeof(uint8_t);
-    params.func = ble_controller_on_blinky_led_status_data_sent_cb;
+        params.attr = attr;
+        params.data = led_status;
+        params.len = sizeof(uint8_t);
+        params.func = ble_controller_on_blinky_led_status_data_sent_cb;
 
-    err = bt_gatt_notify_cb(g_current_conn, &params);
-    if (err) {
-      printk("[BLE Controller] Unable to push Blinky Led Status update (error code %i)\n", err);
-      return;
+        err = bt_gatt_notify_cb(g_current_conn, &params);
+        if (err) {
+            LOG_ERR("Unable to push Blinky Led Status update (error code %i)", err);
+            return;
+        }
     }
-  }
 }

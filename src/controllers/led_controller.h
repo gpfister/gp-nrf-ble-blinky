@@ -18,13 +18,14 @@
 
 int led_controller_init();
 
-int led_controller_run_sequnce();
+int led_controller_run_sequence();
 
 const uint8_t *led_controller_get_led_status();
-const uint16_t *led_controller_get_led_sequence();
-void led_controller_set_led_sequence(const uint16_t *led_sequence);
+const uint8_t *led_controller_get_selected_led_sequence();
+void led_controller_set_selected_led_sequence(const uint8_t led_sequence);
 
 void led_controller_set_bt_connected();
 void led_controller_unset_bt_connected();
+size_t led_controller_led_sequence_length(const uint16_t *led_sequence);
 
 #endif

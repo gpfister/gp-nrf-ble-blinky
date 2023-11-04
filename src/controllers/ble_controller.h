@@ -16,6 +16,10 @@
 
 #include <zephyr/kernel.h>
 
+// typedef struct _ble_controller_cb {
+//     on_blinky_led_sequence_read
+// }
+
 int ble_controller_init();
 
 void ble_controller_update_blinky_led_sequence_value(const uint16_t *led_sequence);
