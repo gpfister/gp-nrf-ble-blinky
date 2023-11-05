@@ -1,0 +1,46 @@
+#
+# gp-nrf52840-ble-blinky
+# Copyright (c) 2023, Greg PFISTER. MIT Licennse
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+
+name: Build
+
+on:
+  push:
+    branches: ["master"]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    container: ghcr.io/zephyrproject-rtos/ci:v0.26.2 
+    env:
+      CMAKE_PREFIX_PATH: /opt/toolchains
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          path: gp-nrf52840-ble-blinky
+
+      - name: Initialize
+        working-directory: gp-nrf52840-ble-blinky
+        run: |
+          west init -l .
+          west update -o=--depth=1 -n
+
+      - name: Build firmware
+        working-directory: gp-nrf52840-ble-blinky
+        run: |
+          west twister -T app -v --inline-logs --integration
+
+      - name: Twister Tests
+        working-directory: gp-nrf52840-ble-blinky
+        run: |
+          west twister -T tests --integration

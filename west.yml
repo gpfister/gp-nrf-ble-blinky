@@ -11,7 +11,18 @@
 # SOFTWARE.
 #
 
-zephyr_include_directories(include)
+manifest:
+  self:
+    path: app
+    west-commands: scripts/west-commands.yml
 
-add_subdirectory(drivers)
-add_subdirectory(lib)
+  remotes:
+    - name: ncs
+      url-base: https://github.com/nrfconnect
+
+  projects:
+    - name: nrf
+      remote: ncs
+      repo-path: sdk-nrf
+      revision: main
+      import: true

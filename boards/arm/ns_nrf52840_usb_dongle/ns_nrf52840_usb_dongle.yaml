@@ -11,7 +11,13 @@
 # SOFTWARE.
 #
 
-zephyr_include_directories(include)
-
-add_subdirectory(drivers)
-add_subdirectory(lib)
+identifier: ns_nrf52840_usb_dongle
+name: NS nRF52840 USB Dongle
+type: mcu
+arch: arm
+ram: 256
+flash: 1024
+toolchain:
+  - zephyr
+  - gnuarmemb
+  - xtools

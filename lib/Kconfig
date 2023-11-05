@@ -11,7 +11,8 @@
 # SOFTWARE.
 #
 
-zephyr_include_directories(include)
+menu "Libraries"
 
-add_subdirectory(drivers)
-add_subdirectory(lib)
+rsource "custom_lib/Kconfig"
+
+endmenu

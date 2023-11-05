@@ -11,7 +11,5 @@
 # SOFTWARE.
 #
 
-zephyr_include_directories(include)
-
-add_subdirectory(drivers)
-add_subdirectory(lib)
+zephyr_library()
+zephyr_library_sources(examplesensor.c)

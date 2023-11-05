@@ -11,7 +11,9 @@
 # SOFTWARE.
 #
 
-zephyr_include_directories(include)
+cmake_minimum_required(VERSION 3.20.0)
+find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
+project(custom_lib)
 
-add_subdirectory(drivers)
-add_subdirectory(lib)
+FILE(GLOB app_sources src/*.c)
+target_sources(app PRIVATE ${app_sources})

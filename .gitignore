@@ -64,12 +64,6 @@ Module.symvers
 Mkfile.old
 dkms.conf
 
-# build
-**/build*/
-
-# VS Code
-.vscode/
-
 # Archives
 *.zip
 *.rar
@@ -88,3 +82,18 @@ TMP/
 .tmp/
 .TMP/
 .cache/
+
+
+# editors
+.vscode
+*.swp
+*~
+
+# python
+.venv
+
+# build
+**/build*/
+**/twister-out*/
+
+__pycache__/

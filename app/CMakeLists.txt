@@ -11,7 +11,19 @@
 # SOFTWARE.
 #
 
-zephyr_include_directories(include)
+# cmake minimal version
+cmake_minimum_required(VERSION 3.20.0)
 
-add_subdirectory(drivers)
-add_subdirectory(lib)
+# Zephy package
+find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
+
+# Project name
+project(gp-nrf52840-ble-blinky)
+
+# # Subdirectories
+# add_subdirectory(lib)
+
+# Target
+target_sources(app PRIVATE src/main.c)
+target_sources(app PRIVATE src/controllers/ble_controller.c)
+target_sources(app PRIVATE src/controllers/led_controller.c)

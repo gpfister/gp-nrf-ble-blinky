@@ -11,7 +11,19 @@
 # SOFTWARE.
 #
 
-zephyr_include_directories(include)
+config CUSTOM_LIB
+	bool "custom_lib Support"
+	help
+	  This option enables the custom_lib library
 
-add_subdirectory(drivers)
-add_subdirectory(lib)
+config CUSTOM_LIB_GET_VALUE_DEFAULT
+	int "custom_lib_get_value() default return value"
+	depends on CUSTOM_LIB
+	default 0
+	help
+	  This option primarily exists as an example of a library Kconfig
+	  setting.
+
+	  This option specifies the value for custom_lib_get_value()
+	  to return when the input parameter is zero.  (Otherwise
+	  the function returns the input parameter value.)

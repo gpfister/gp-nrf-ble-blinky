@@ -11,7 +11,15 @@
 # SOFTWARE.
 #
 
-zephyr_include_directories(include)
+CONFIG_SOC_SERIES_NRF52X=y
+CONFIG_SOC_NRF52840_QIAA=y
+CONFIG_BOARD_NS_NRF52840_USB_DONGLE=y
 
-add_subdirectory(drivers)
-add_subdirectory(lib)
+# Enable MPU
+CONFIG_ARM_MPU=y
+
+# Enable hardware stack protection
+CONFIG_HW_STACK_PROTECTION=y
+
+# Enable GPIO
+CONFIG_GPIO=y

@@ -11,7 +11,12 @@
 # SOFTWARE.
 #
 
-zephyr_include_directories(include)
+if BOARD_NS_NRF52840_DK
 
-add_subdirectory(drivers)
-add_subdirectory(lib)
+config BOARD
+	default "ns_nrf52840_dk"
+
+config BT_CTLR
+   default BT
+
+endif
