@@ -23,7 +23,7 @@ project(gp-nrf52840-ble-blinky)
 # # Subdirectories
 # add_subdirectory(lib)
 
-# App
+# Target
 target_sources(app PRIVATE src/main.c)
 target_sources(app PRIVATE src/controllers/ble_controller.c)
 target_sources(app PRIVATE src/controllers/led_controller.c)

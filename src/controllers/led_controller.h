@@ -16,16 +16,20 @@
 
 #include <zephyr/kernel.h>
 
-int led_controller_init();
+typedef struct led_controller_cb {
+    void (*on_blinky_led_selected_sequence_changed)(const uint8_t *led_sequence);
+    void (*on_blinky_led_status_changed)(const uint8_t *led_status);
+} led_controller_cb;
+
+int led_controller_init(struct led_controller_cb *cb);
 
 int led_controller_run_sequence();
 
 const uint8_t *led_controller_get_led_status();
 const uint8_t *led_controller_get_selected_led_sequence();
-void led_controller_set_selected_led_sequence(const uint8_t led_sequence);
+void led_controller_set_selected_led_sequence(const uint8_t *led_sequence);
 
 void led_controller_set_bt_connected();
 void led_controller_unset_bt_connected();
-size_t led_controller_led_sequence_length(const uint16_t *led_sequence);
 
 #endif
