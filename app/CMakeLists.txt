@@ -1,5 +1,5 @@
 #
-# gp-nrf52840-ble-blinky
+# gp-nrf-ble-blinky
 # Copyright (c) 2023, Greg PFISTER. MIT Licennse
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -18,12 +18,7 @@ cmake_minimum_required(VERSION 3.20.0)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 
 # Project name
-project(gp-nrf52840-ble-blinky)
-
-# # Subdirectories
-# add_subdirectory(lib)
+project(gp-nrf-ble-blinky)
 
 # Target
 target_sources(app PRIVATE src/main.c)
-target_sources(app PRIVATE src/controllers/ble_controller.c)
-target_sources(app PRIVATE src/controllers/led_controller.c)

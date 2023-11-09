@@ -11,6 +11,18 @@
 # SOFTWARE.
 #
 
-CONFIG_ZTEST=y
-CONFIG_ZTEST_NEW_API=y
-CONFIG_CUSTOM_LIB=y
+menuconfig BLE_DRIVER
+	bool "BLE Driver"
+	default y
+	# depends on DT_HAS_ZEPHYR_LED_ENABLED
+	# select GPIO
+	help
+	  BLE Driver
+
+if BLE_DRIVER
+
+module = BLE_DRIVER
+module-str = BLE Driver
+source "subsys/logging/Kconfig.template.log_config"
+
+endif

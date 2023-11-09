@@ -1,5 +1,5 @@
 #
-# gp-nrf52840-ble-blinky
+# gp-nrf-ble-blinky
 # Copyright (c) 2023, Greg PFISTER. MIT Licennse
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -12,4 +12,4 @@
 #
 
 zephyr_library()
-zephyr_library_sources(examplesensor.c)
+zephyr_library_sources(src/led.c)

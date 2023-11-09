@@ -1,5 +1,5 @@
 //
-// gp-nrf52840-ble-blinky
+// gp-nrf-ble-blinky
 // Copyright (c) 2023, Greg PFISTER. MIT Licennse
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -11,16 +11,16 @@
 // SOFTWARE.
 //
 
-#include "led_controller.h"
-
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/random/rand32.h>
 
+#include <drivers/led.h>
+
 /* Logger *********************************************************************/
 
-LOG_MODULE_REGISTER(led_controller, CONFIG_LOG_DEFAULT_LEVEL);
+LOG_MODULE_REGISTER(LED_DRIVER, CONFIG_LED_DRIVER_LOG_LEVEL);
 
 /* Declarations ***************************************************************/
 

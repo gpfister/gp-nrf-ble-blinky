@@ -1,5 +1,5 @@
 //
-// gp-nrf52840-ble-blinky
+// gp-nrf-ble-blinky
 // Copyright (c) 2023, Greg PFISTER. MIT Licennse
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -11,8 +11,8 @@
 // SOFTWARE.
 //
 
-#ifndef __BLE_CONTROLLER_H__
-#define __BLE_CONTROLLER_H__
+#ifndef __BLE_H__
+#define __BLE_H__
 
 #include <zephyr/kernel.h>
 
@@ -29,4 +29,4 @@ int ble_controller_init(struct ble_controller_cb *cb);
 void ble_controller_update_blinky_led_sequence_value(const uint8_t *led_sequence);
 void ble_controller_update_blinky_led_status_value(const uint8_t *led_status);
 
-#endif
+#endif /* __BLE_H__ */

@@ -1,5 +1,5 @@
 //
-// gp-nrf52840-ble-blinky
+// gp-nrf-ble-blinky
 // Copyright (c) 2023, Greg PFISTER. MIT Licennse
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -15,16 +15,12 @@
 #include <zephyr/logging/log.h>
 
 #include <app_version.h>
-
-// #include <ble_controller/ble_controller.h>
-// #include <led_controller/led_controller.h>
-
-#include "controllers/ble_controller.h"
-#include "controllers/led_controller.h"
+#include <drivers/ble.h>
+#include <drivers/led.h>
 
 /* Logger *********************************************************************/
 
-LOG_MODULE_REGISTER(main, CONFIG_LOG_DEFAULT_LEVEL);
+LOG_MODULE_REGISTER(APP, CONFIG_LOG_DEFAULT_LEVEL);
 
 /* Declarations ***************************************************************/
 
@@ -37,7 +33,7 @@ const uint8_t *on_ble_central_read_blinky_led_selected_sequence_cb();
 const uint8_t *on_ble_central_read_blinky_led_status_cb();
 void on_ble_central_write_blinky_led_selected_sequence_cb(const uint8_t *led_sequence);
 
-/* Main ***********************************************************************/
+// /* Main ***********************************************************************/
 
 int main(void)
 {

@@ -1,5 +1,5 @@
 #
-# gp-nrf52840-ble-blinky
+# gp-nrf-ble-blinky
 # Copyright (c) 2023, Greg PFISTER. MIT Licennse
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -11,10 +11,18 @@
 # SOFTWARE.
 #
 
-config EXAMPLESENSOR
-	bool "Example sensor"
+menuconfig LED_DRIVER
+	bool "Led Driver"
 	default y
-	depends on DT_HAS_ZEPHYR_EXAMPLESENSOR_ENABLED
+	# depends on DT_HAS_ZEPHYR_LED_DRIVER_ENABLED
 	select GPIO
 	help
-	  Enable example sensor
+	  Led Driver
+
+if LED_DRIVER
+
+module = LED_DRIVER
+module-str = Led Driver
+source "subsys/logging/Kconfig.template.log_config"
+
+endif

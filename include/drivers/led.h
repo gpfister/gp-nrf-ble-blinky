@@ -1,5 +1,5 @@
 //
-// gp-nrf52840-ble-blinky
+// gp-nrf-ble-blinky
 // Copyright (c) 2023, Greg PFISTER. MIT Licennse
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -11,8 +11,8 @@
 // SOFTWARE.
 //
 
-#ifndef __LED_CONTROLLER_H__
-#define __LED_CONTROLLER_H__
+#ifndef __LED_H__
+#define __LED_H__
 
 #include <zephyr/kernel.h>
 
@@ -32,4 +32,4 @@ void led_controller_set_selected_led_sequence(const uint8_t *led_sequence);
 void led_controller_set_bt_connected();
 void led_controller_unset_bt_connected();
 
-#endif
+#endif /* __LED_H__ */

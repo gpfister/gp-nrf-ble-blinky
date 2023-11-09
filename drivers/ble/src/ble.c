@@ -1,5 +1,5 @@
 //
-// gp-nrf52840-ble-blinky
+// gp-nrf-ble-blinky
 // Copyright (c) 2023, Greg PFISTER. MIT Licennse
 //
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -11,17 +11,17 @@
 // SOFTWARE.
 //
 
-#include "ble_controller.h"
-
 #include <zephyr/bluetooth/bluetooth.h>
 #include <zephyr/bluetooth/gatt.h>
 #include <zephyr/bluetooth/hci.h>
 #include <zephyr/bluetooth/uuid.h>
 #include <zephyr/logging/log.h>
 
+#include <drivers/ble.h>
+
 /* Logger *********************************************************************/
 
-LOG_MODULE_REGISTER(ble_controller, CONFIG_LOG_DEFAULT_LEVEL);
+LOG_MODULE_REGISTER(BLE_DRIVER, CONFIG_BLE_DRIVER_LOG_LEVEL);
 
 /* Internal declarations ******************************************************/
 

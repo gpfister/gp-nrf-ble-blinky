@@ -1,5 +1,5 @@
 #
-# gp-nrf52840-ble-blinky
+# gp-nrf-ble-blinky
 # Copyright (c) 2023, Greg PFISTER. MIT Licennse
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
@@ -27,20 +27,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          path: gp-nrf52840-ble-blinky
+          path: gp-nrf-ble-blinky
 
       - name: Initialize
-        working-directory: gp-nrf52840-ble-blinky
+        working-directory: gp-nrf-ble-blinky
         run: |
           west init -l .
           west update -o=--depth=1 -n
 
       - name: Build firmware
-        working-directory: gp-nrf52840-ble-blinky
+        working-directory: gp-nrf-ble-blinky
         run: |
           west twister -T app -v --inline-logs --integration
 
       - name: Twister Tests
-        working-directory: gp-nrf52840-ble-blinky
+        working-directory: gp-nrf-ble-blinky
         run: |
           west twister -T tests --integration

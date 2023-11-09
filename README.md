@@ -47,7 +47,7 @@ Board used for development and testing:
 The simplest method is to run the following command:
 
 ```sh
-west init -m git@github.com:gpfister/gp-nrf52840-ble-blinky.git --mr master gp-nrf52840-ble-blinky-workspaceest
+west init -m git@github.com:gpfister/gp-nrf-ble-blinky.git --mr master gp-nrf-ble-blinky-workspaceest
 ```
 
 However this wouldn't work if using `git+ssh` with ssh custom paramters.
@@ -61,14 +61,14 @@ First, get the sources:
 mkdir ncs-workspace
 cd ncs-workspace
 mkdir .west
-git clone git@github.com:gpfister/gp-nrf52840-ble-blinky.git -c core.sshCommand="ssh -i ~/.ssh/gpfister.github -o IdentitiesOnly=yes"
+git clone git@github.com:gpfister/gp-nrf-ble-blinky.git -c core.sshCommand="ssh -i ~/.ssh/gpfister.github -o IdentitiesOnly=yes"
 ```
 
 Then, add the west config in `<WORKSPACE_ROOT>/.west/config`:
 
 ```
 [manifest]
-path = gp-nrf52840-ble-blinky
+path = gp-nrf-ble-blinky
 file = west.yml
 
 [zephyr]
@@ -106,16 +106,17 @@ west twister -T tests --integration
 ### Build and flash via `VS Code`
 
 1. Open the workspace in `VS Code`.
-2. In the `nRF Connect for VS Code` plugin, run the `west update`.
+2. In the `nRF Connect for VS Code` plugin, run the 
+   `west update -o=--depth=1 -n`.
 3. In the `nRF Connect for VS Code` plugin, select the app located in 
-   `gp-nrf52840-ble-blinky/app` folder.
+   `gp-nrf-ble-blinky/app` folder.
 4. Create a building configuration picking any of the supported board (see 
    above).
 
 ## Test BLE
 
 Ideally, use the `nRF Connect for Desktop Bluetooth Low Energy`. Scan for a 
-device named `Greg's nRF52840 Blinky`.
+device named `Greg's nRF Blinky`.
 
 Alternatively, use an app like `LightBlue`.
 
