@@ -21,6 +21,19 @@ menuconfig LED_DRIVER
 
 if LED_DRIVER
 
+config LED_DRIVER_BLINKY
+	bool "Active the Blinky led"
+	default y
+	help
+	  Blinks a led. It requires the led_blinky to be set on the device tree
+
+config LED_DRIVER_BT_STATUS
+	bool "Activate the BT status led"
+	default y
+	help
+	  Use a led to display the BT led status (on: connected, off: disconnected).
+	  It requires the led_bt_status to be set on the device tree
+
 module = LED_DRIVER
 module-str = Led Driver
 source "subsys/logging/Kconfig.template.log_config"

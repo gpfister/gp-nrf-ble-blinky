@@ -12,10 +12,12 @@
 #
 
 manifest:
+  version: 1.0
+
   self:
     path: app
     west-commands: scripts/west-commands.yml
-
+    
   remotes:
     - name: ncs
       url-base: https://github.com/nrfconnect
@@ -26,3 +28,4 @@ manifest:
       repo-path: sdk-nrf
       revision: v2.5.0
       import: true
+
