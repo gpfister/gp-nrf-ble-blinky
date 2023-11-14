@@ -10,3 +10,30 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
+
+/ {
+
+	aliases {
+		ledblinky = &led0;
+		ledbtstatusr = &led1r;
+		ledbtstatusg = &led1g;
+		ledbtstatusb = &led1b;
+	};
+
+	leds {
+		compatible = "gpio-leds";
+        led0: led_0 { // The blinky led
+            gpios = < &gpio0 0x6 0x1 >;
+        };
+        led1r: led_1r {
+            gpios = < &gpio0 0x8 0x1 >;// The BT status led
+        };
+        led1g: led_1g {
+            gpios = < &gpio1 0x9 0x1 >;// The BT status led
+        };
+        led1b: led_1b {
+            gpios = < &gpio1 0xc 0x1 >;// The BT status led
+        };
+
+    };
+};

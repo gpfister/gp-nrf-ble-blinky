@@ -20,10 +20,24 @@
 	compatible = "nordic-semiconductor,ns-nrf52840-usb-dongle";
 
 	chosen {
+		zephyr,console = &uart0;
+		zephyr,shell-uart = &uart0;
+		zephyr,uart-mcumgr = &uart0;
+		zephyr,bt-mon-uart = &uart0;
+		zephyr,bt-c2h-uart = &uart0;
 		zephyr,sram = &sram0;
 		zephyr,flash = &flash0;
 		zephyr,code-partition = &slot0_partition;
+		zephyr,ieee802154 = &ieee802154;
 	};
+};
+
+&gpio0 {
+	status = "okay";
+};
+
+&gpio1 {
+	status = "okay";
 };
 
 &flash0 {
@@ -54,4 +68,3 @@
 		};
 	};
 };
-
