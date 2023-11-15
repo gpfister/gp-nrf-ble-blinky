@@ -16,7 +16,8 @@ manifest:
 
   self:
     path: app
-    west-commands: scripts/west-commands.yml
+    # west-commands: 
+    # west-commands: scripts/west-commands.yml
     
   remotes:
     - name: ncs
