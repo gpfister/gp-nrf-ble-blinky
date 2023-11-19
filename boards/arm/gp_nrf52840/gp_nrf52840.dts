@@ -16,7 +16,7 @@
 #include "ns_nrf52840_dk-leds.dtsi"
 
 / {
-	model = "NS nRF52840 DK";
+	model = "Greg's nRF52840";
 	compatible = "nordic,nrf52840dk_nrf52840";
 
 	chosen {

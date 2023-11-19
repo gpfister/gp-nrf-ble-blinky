@@ -37,8 +37,10 @@ On the development kit, the led 1 is used to display the BLE connection status
 ## Supported boards
 
 Board used for development and testing:
-- Nordics nRF52840 USB Dongle (board: `ns-nRF52840-usb-dongle`)
-- Nordics nRF52840 DK (board: `ns-nRF52840-dk`)
+- Nordics nRF52840 USB Dongle (board: `nrf52840dongle_nrf52840`) via a specific
+  [overlay](./app/nrf52840dongle_nrf52840.overlay)
+- Nordics nRF52840 DK (board: `nRF52840dk_nrf52840`) via a specific
+  [overlay](./app/nrf52840dk_nrf52840.overlay)
 
 ## Getting started
 
@@ -58,35 +60,26 @@ Alternatively you may create a workspace folderg, clone the repository, add the
 First, get the sources:
 
 ```sh
-mkdir ncs-workspace
-cd ncs-workspace
-mkdir .west
+mkdir <WORKSPACE_FOLDER>
+cd <WORKSPACE_FOLDER>
 git clone git@github.com:gpfister/gp-nrf-ble-blinky.git -c core.sshCommand="ssh -i ~/.ssh/gpfister.github -o IdentitiesOnly=yes"
+cd gp-nrf-ble-blinky
 ```
 
-Then, add the west config in `<WORKSPACE_ROOT>/.west/config`:
-
-```
-[manifest]
-path = gp-nrf-ble-blinky
-file = west.yml
-
-[zephyr]
-base = zephyr
-```
-
-Finaly, get all dependencies by runnint at `<WORKSPACE_ROOT>/`:
-
+Then, you can initialise the repository:
 ```sh
-west update
+cd gp-nrf-ble-blinky
+west init -l
+cd ..
+west update -o=--depth=1 -n
 ```
 
-### Build, test and flash via command line
+### Build and flash via command line
 
 To build:
 
 ```sh
-export BOARD='ns-rfF52840-dk'
+export BOARD=<SUPPORTED_BOARD>
 west build -b $BOARD app
 ```
 
@@ -94,13 +87,6 @@ To flash:
 
 ```sh
 west flash
-```
-
-To run unit tests:
-
-```sh          
-west twister -T app -v --inline-logs --integration
-west twister -T tests --integration
 ```
 
 ### Build and flash via `VS Code`
@@ -112,6 +98,15 @@ west twister -T tests --integration
    `gp-nrf-ble-blinky/app` folder.
 4. Create a building configuration picking any of the supported board (see 
    above).
+
+## Unit testing
+
+To run unit tests:
+
+```sh          
+CMAKE_PREFIX_PATH=/opt/nordic/ncs/toolchains/20d68df7e5/opt/ west twister -T gp-nrf-ble-blinky/app -v --inline-logs --integration
+CMAKE_PREFIX_PATH=/opt/nordic/ncs/toolchains/20d68df7e5/opt/ west twister -T gp-nrf-ble-blinky/tests --integration
+```
 
 ## Test BLE
 

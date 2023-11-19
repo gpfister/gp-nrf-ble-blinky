@@ -11,21 +11,22 @@
 // SOFTWARE.
 //
 
-/ {
+#ifndef __LED_BLE_H__
+#define __LED_BLE_H__
 
-	aliases {
-		ledblinky = &led0;
-		ledbtstatus = &led1;
-	};
+#if CONFIG_LED_DRIVER_BLE
 
-	leds {
-		compatible = "gpio-leds";
-        led0: led_0 { // The blinky led
-            gpios = < &gpio0 0xd 0x1 >;
-        };
-        led1: led_1 {
-            gpios = < &gpio0 0xe 0x1 >;// The BT status led
-        };
+#include <zephyr/drivers/gpio.h>
 
-    };
-};
+/* Define led nodes ***********************************************************/
+
+#define BLE_LED_NODE DT_ALIAS(ledble)
+static const struct gpio_dt_spec g_ble_led = GPIO_DT_SPEC_GET(BLE_LED_NODE, gpios);
+
+/* Declarations ***************************************************************/
+
+int configure_ble_led();
+
+#endif /* CONFIG_LED_DRIVER_BLE */
+
+#endif /** __LED_BLE_H__ */

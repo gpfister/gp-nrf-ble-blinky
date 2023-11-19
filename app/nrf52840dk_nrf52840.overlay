@@ -15,6 +15,6 @@
 	// Define led aliases
 	aliases {
 		ledblinky = &led0;		// Blinky led
-		ledbtstatus = &led1;	// BT Led (off: disconnected / Blue: connected)
+		ledble = &led1;			// BT Led (off: disconnected / Blue: connected)
 	};
 };

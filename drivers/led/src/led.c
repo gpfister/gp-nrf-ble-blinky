@@ -11,6 +11,9 @@
 // SOFTWARE.
 //
 
+#include "led_ble.h"
+#include "led_blinky.h"
+
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
@@ -24,28 +27,15 @@ LOG_MODULE_REGISTER(LED_DRIVER, CONFIG_LED_DRIVER_LOG_LEVEL);
 
 /* Declarations ***************************************************************/
 
-int configure_blinky_led();
-int configure_bt_status_led();
 void set_random_led_sequence();
 size_t blinky_led_sequence_length(const uint16_t *led_sequence);
-
-/* Define led nodes ***********************************************************/
-
-#if CONFIG_LED_DRIVER_BLINKY
-#define BLINKY_LED_NODE DT_ALIAS(ledblinky)
-static const struct gpio_dt_spec g_blinky_led = GPIO_DT_SPEC_GET(BLINKY_LED_NODE, gpios);
-#endif
-
-#if CONFIG_LED_DRIVER_BT_STATUS
-#define BT_STATUS_LED_NODE DT_ALIAS(ledbtstatus)
-static const struct gpio_dt_spec g_bt_status_led = GPIO_DT_SPEC_GET(BT_STATUS_LED_NODE, gpios);
-#endif
 
 /* Sequence *******************************************************************/
 
 uint16_t g_blinky_led_sequences[8][19] = {
     // Random (replaced at runtime)
     {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2000, 0},
+    // Regular parterns
     {100, 100, 0},
     {500, 500, 0},
     {1000, 1000, 0},
@@ -92,14 +82,14 @@ int led_controller_init(struct led_controller_cb *cb)
     }
 #endif
 
-#if CONFIG_LED_DRIVER_BT_STATUS
+#if CONFIG_LED_DRIVER_BLE
     // BLE Status led
-    ret = configure_bt_status_led();
+    ret = configure_ble_led();
     if (ret < 0) {
-        LOG_ERR("Unable to configure Bluetooth Status Led (error code %i)", ret);
+        LOG_ERR("Unable to configure BLE Led (error code %i)", ret);
         return -2;
     }
-#endif
+#endif /* CONFIG_LED_DRIVER_BLE */
 
     LOG_INF("Led controller initialization done!");
     return 0;
@@ -136,32 +126,32 @@ int configure_blinky_led()
 }
 #endif
 
-#if CONFIG_LED_DRIVER_BT_STATUS
-int configure_bt_status_led()
+#if CONFIG_LED_DRIVER_BLE
+int configure_ble_led()
 {
     int ret;
 
-    ret = gpio_is_ready_dt(&g_bt_status_led);
+    ret = gpio_is_ready_dt(&g_ble_led);
     if (ret < 0) {
-        LOG_ERR("Unable to init BLE status led (error code %i)", ret);
+        LOG_ERR("Unable to init BLE led (error code %i)", ret);
         return -1;
     }
 
-    ret = gpio_pin_configure_dt(&g_bt_status_led, GPIO_OUTPUT_ACTIVE);
+    ret = gpio_pin_configure_dt(&g_ble_led, GPIO_OUTPUT_ACTIVE);
     if (ret < 0) {
-        LOG_ERR("Unable to configure BLE status led (error code %i)", ret);
+        LOG_ERR("Unable to configure BLE led (error code %i)", ret);
         return -2;
     }
 
-    ret = gpio_pin_set_dt(&g_bt_status_led, 0);
+    ret = gpio_pin_set_dt(&g_ble_led, 0);
     if (ret < 0) {
-        LOG_ERR("Unable to set BLE status led to LOW (error code %i)", ret);
+        LOG_ERR("Unable to set BLE led to LOW (error code %i)", ret);
         return -3;
     }
 
     return 0;
 }
-#endif
+#endif /* CONFIG_LED_DRIVER_BLE */
 
 /* Run led sequence ***********************************************************/
 
@@ -233,29 +223,27 @@ void led_controller_set_selected_led_sequence(const uint8_t *led_sequence)
 
 /* Control BLE status led *****************************************************/
 
+#if CONFIG_LED_DRIVER_BLE
 void led_controller_set_bt_connected()
 {
-#if CONFIG_LED_DRIVER_BT_STATUS
     int ret;
 
-    ret = gpio_pin_set_dt(&g_bt_status_led, 1);
+    ret = gpio_pin_set_dt(&g_ble_led, 1);
     if (ret < 0) {
         LOG_ERR("Unable to set BLE status led to HIGH (error code %i)", ret);
     }
-#endif
 }
 
 void led_controller_unset_bt_connected()
 {
-#if CONFIG_LED_DRIVER_BT_STATUS
     int ret;
 
-    ret = gpio_pin_set_dt(&g_bt_status_led, 0);
+    ret = gpio_pin_set_dt(&g_ble_led, 0);
     if (ret < 0) {
         LOG_ERR("Unable to set BLE status led to LOW (error code %i)", ret);
     }
-#endif
 }
+#endif /* CONFIG_LED_DRIVER_BLE */
 
 /* Utilities ******************************************************************/
 

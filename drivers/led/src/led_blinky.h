@@ -11,10 +11,22 @@
 // SOFTWARE.
 //
 
-/ {
-	// Define led aliases
-	aliases {
-		ledblinky = &led0_green;	// Blinky led
-        ledble = &led1_blue; 		// BLE led (off: disconnected / Blue: connected)
-	};
-};
+#ifndef __LED_BLINKY_H__
+#define __LED_BLINKY_H__
+
+#if CONFIG_LED_DRIVER_BLINKY
+
+#include <zephyr/drivers/gpio.h>
+
+/* Define led nodes ***********************************************************/
+
+#define BLINKY_LED_NODE DT_ALIAS(ledblinky)
+static const struct gpio_dt_spec g_blinky_led = GPIO_DT_SPEC_GET(BLINKY_LED_NODE, gpios);
+
+/* Declarations ***************************************************************/
+
+int configure_blinky_led();
+
+#endif /* CONFIG_LED_DRIVER_BLINKY */
+
+#endif /** __LED_BLINKY_H__ */

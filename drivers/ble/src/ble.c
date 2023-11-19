@@ -181,17 +181,17 @@ void on_ready_cb(int err)
 void on_connected_cb(struct bt_conn *conn, uint8_t err)
 {
     if (err) {
-        LOG_ERR("Unable to connect (error code %i)", err);
+        LOG_ERR("Central %p is unable to connect (error code %i)", (void *)conn, err);
         return;
     }
 
     // Reference current connection
     g_current_conn = bt_conn_ref(conn);
-    LOG_INF("Device connected %p", (void *)g_current_conn);
+    LOG_DBG("Central %p connected", (void *)conn);
 
     // Set led indicating BLE central is connected
     if (g_cb.on_connect) {
-        g_cb.on_connect();
+        g_cb.on_connect(conn);
     }
 }
 
@@ -200,17 +200,17 @@ void on_connected_cb(struct bt_conn *conn, uint8_t err)
  */
 void on_disconnected_cb(struct bt_conn *conn, uint8_t reason)
 {
-    LOG_INF("Device disconnected (reason code %i)", reason);
+    LOG_DBG("Central %p disconnected (reason code %i)", (void *)conn, reason);
 
     // If there was an active connect, unreference it
     if (g_current_conn) {
-        bt_conn_unref(g_current_conn);
+        bt_conn_unref(conn);
         g_current_conn = NULL;
     }
 
     // Unset led BLE indicating BLE central is connected
     if (g_cb.on_disconnect) {
-        g_cb.on_disconnect();
+        g_cb.on_disconnect(conn);
     }
 }
 
@@ -220,24 +220,24 @@ void on_disconnected_cb(struct bt_conn *conn, uint8_t reason)
 ssize_t on_read_blinky_led_sequence_characteristic_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr, void *buf,
                                                       uint16_t len, uint16_t offset)
 {
-    LOG_DBG("Reading led sequence...");
-    return bt_gatt_attr_read(conn, attr, buf, len, offset, g_cb.on_read_blinky_led_selected_sequence(),
+    LOG_DBG("Central %p is reading led sequence...", (void *)conn);
+    return bt_gatt_attr_read(conn, attr, buf, len, offset, g_cb.on_read_blinky_led_selected_sequence(conn),
                              sizeof(uint8_t));
 }
 
 ssize_t on_write_blinky_led_sequence_characteristic_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr,
                                                        const void *buf, uint16_t len, uint16_t offset, uint8_t flags)
 {
-    LOG_DBG("Received Blinky Led Sequence Data on handle %d & conn %p", attr->handle, (void *)conn);
+    LOG_DBG("Central %p sent new Blinky Led Sequence Data on handle %d", (void *)conn, attr->handle);
 
     if (len != sizeof(uint8_t)) {
-        LOG_ERR("Invalid Blinky Led Sequence received (expected %i bytes, "
+        LOG_ERR("Central %p sent invalid Blinky Led Sequence received (expected %i bytes, "
                 "received %i bytes)",
-                sizeof(uint8_t), len);
+                (void *)conn, sizeof(uint8_t), len);
     } else {
         const uint8_t *value = buf;
         if (g_cb.on_write_blinky_led_selected_sequence) {
-            g_cb.on_write_blinky_led_selected_sequence(value);
+            g_cb.on_write_blinky_led_selected_sequence(bt_conn_ref(conn), value);
         }
         LOG_HEXDUMP_DBG(buf, len, "Blinky Led Sequence value received");
     }
@@ -250,8 +250,8 @@ ssize_t on_write_blinky_led_sequence_characteristic_cb(struct bt_conn *conn, con
 ssize_t on_read_blinky_led_status_characteristic_cb(struct bt_conn *conn, const struct bt_gatt_attr *attr, void *buf,
                                                     uint16_t len, uint16_t offset)
 {
-    LOG_DBG("Reading led status...");
-    return bt_gatt_attr_read(conn, attr, buf, len, offset, g_cb.on_read_blinky_led_status(), 1 * sizeof(uint8_t));
+    LOG_DBG("Central %p is reading led status...", (void *)conn);
+    return bt_gatt_attr_read(conn, attr, buf, len, offset, g_cb.on_read_blinky_led_status(conn), 1 * sizeof(uint8_t));
 }
 
 /**
@@ -313,6 +313,7 @@ void ble_controller_update_blinky_led_sequence_value(const uint8_t *led_sequence
             LOG_ERR("Unable to push Blinky Led Sequence update (error code %i)", err);
             return;
         }
+        LOG_DBG("Pushed Blinky Led Sequence update to handle %i", attr->handle);
     }
 }
 

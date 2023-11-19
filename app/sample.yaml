@@ -11,6 +11,19 @@
 # SOFTWARE.
 #
 
-config BOARD_NS_NRF52840_DK
-	bool "NS nRF52840 DK"
-	depends on SOC_NRF52840_QIAA
+# This file is provided so that the application can be compiled using Twister,
+# the Zephyr testing tool. In this file, multiple combinations can be specified,
+# so that you can easily test all of them locally or in CI.
+sample:
+  description: Greg's nRF BLE Blinky
+  name: gp-nrf-ble-blinky
+common:
+  build_only: true
+  integration_platforms:
+    - nrf52840dk_nrf52840
+    - nrf52840dongle_nrf52840
+tests:
+  app.default: {}
+  app.debug:
+    extra_overlay_confs:
+      - debug.conf

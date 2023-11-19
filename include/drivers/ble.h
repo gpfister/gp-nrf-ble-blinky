@@ -17,11 +17,11 @@
 #include <zephyr/kernel.h>
 
 typedef struct ble_controller_cb {
-    void (*on_connect)();
-    void (*on_disconnect)();
-    const uint8_t *(*on_read_blinky_led_selected_sequence)();
-    const uint8_t *(*on_read_blinky_led_status)();
-    void (*on_write_blinky_led_selected_sequence)(const uint8_t *led_sequence);
+    void (*on_connect)(const void *conn);
+    void (*on_disconnect)(const void *conn);
+    const uint8_t *(*on_read_blinky_led_selected_sequence)(const void *conn);
+    const uint8_t *(*on_read_blinky_led_status)(const void *conn);
+    void (*on_write_blinky_led_selected_sequence)(const void *conn, const uint8_t *led_sequence);
 } ble_controller_cb;
 
 int ble_controller_init(struct ble_controller_cb *cb);

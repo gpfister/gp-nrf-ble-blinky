@@ -15,7 +15,7 @@ common:
   tags: extensibility
   integration_platforms:
     - nrf52840dk_nrf52840
-    - qemu_cortex_m0
+    - nrf52840dongle_nrf52840
 tests:
   lib.custom_lib: {}
   lib.custom_lib.non_default:

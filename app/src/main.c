@@ -27,11 +27,11 @@ LOG_MODULE_REGISTER(APP, CONFIG_LOG_DEFAULT_LEVEL);
 void printInfo();
 void on_blinky_led_selected_sequence_changed_cb(const uint8_t *led_sequence);
 void on_blinky_led_status_changed_cb(const uint8_t *led_status);
-void on_ble_central_connected_cb();
-void on_ble_central_disconnected_cb();
-const uint8_t *on_ble_central_read_blinky_led_selected_sequence_cb();
-const uint8_t *on_ble_central_read_blinky_led_status_cb();
-void on_ble_central_write_blinky_led_selected_sequence_cb(const uint8_t *led_sequence);
+void on_ble_central_connected_cb(const void *conn);
+void on_ble_central_disconnected_cb(const void *conn);
+const uint8_t *on_ble_central_read_blinky_led_selected_sequence_cb(const void *conn);
+const uint8_t *on_ble_central_read_blinky_led_status_cb(const void *conn);
+void on_ble_central_write_blinky_led_selected_sequence_cb(const void *conn, const uint8_t *led_sequence);
 
 // /* Main ***********************************************************************/
 
@@ -56,7 +56,7 @@ int main(void)
     // Initializing BLE
     struct ble_controller_cb ble_controller_cb = {
         .on_connect = on_ble_central_connected_cb,
-        .on_connect = on_ble_central_disconnected_cb,
+        .on_disconnect = on_ble_central_disconnected_cb,
         .on_read_blinky_led_selected_sequence = on_ble_central_read_blinky_led_selected_sequence_cb,
         .on_read_blinky_led_status = on_ble_central_read_blinky_led_status_cb,
         .on_write_blinky_led_selected_sequence = on_ble_central_write_blinky_led_selected_sequence_cb,
@@ -96,42 +96,46 @@ void printInfo()
 
 void on_blinky_led_selected_sequence_changed_cb(const uint8_t *led_sequence)
 {
+#if CONFIG_LED_DRIVER_BLE
     ble_controller_update_blinky_led_sequence_value(led_sequence);
+#endif /* CONFIG_LED_DRIVER_BLE */
 }
 
 void on_blinky_led_status_changed_cb(const uint8_t *led_status)
 {
+#if CONFIG_LED_DRIVER_BLE
     ble_controller_update_blinky_led_status_value(led_status);
+#endif /* CONFIG_LED_DRIVER_BLE */
 }
 
 /* BLE Controller Callbacks ***************************************************/
 
-void on_ble_central_connected_cb()
+void on_ble_central_connected_cb(const void *conn)
 {
-    LOG_INF("BLE - Central device connected");
+    LOG_INF("BLE - Central device %p connected", (void *)conn);
     led_controller_set_bt_connected();
 }
 
-void on_ble_central_disconnected_cb()
+void on_ble_central_disconnected_cb(const void *conn)
 {
-    LOG_INF("Central device disconnected");
+    LOG_INF("Central device %p disconnected", (void *)conn);
     led_controller_unset_bt_connected();
 }
 
-const uint8_t *on_ble_central_read_blinky_led_selected_sequence_cb()
+const uint8_t *on_ble_central_read_blinky_led_selected_sequence_cb(const void *conn)
 {
-    LOG_INF("BLE - Reading selected blinky led sequence value");
+    LOG_INF("BLE - Central %p is reading selected blinky led sequence value", (void *)conn);
     return led_controller_get_selected_led_sequence();
 }
 
-const uint8_t *on_ble_central_read_blinky_led_status_cb()
+const uint8_t *on_ble_central_read_blinky_led_status_cb(const void *conn)
 {
-    LOG_INF("BLE - Reading selected blinky led status");
+    LOG_INF("BLE - Central %p is reading selected blinky led status", (void *)conn);
     return led_controller_get_led_status();
 }
 
-void on_ble_central_write_blinky_led_selected_sequence_cb(const uint8_t *led_sequence)
+void on_ble_central_write_blinky_led_selected_sequence_cb(const void *conn, const uint8_t *led_sequence)
 {
-    LOG_INF("BLE - New selected sequence for blinkty led: %i", *led_sequence);
+    LOG_INF("BLE - Central %p is setting new selected sequence for blinkty led: %i", (void *)conn, *led_sequence);
     led_controller_set_selected_led_sequence(led_sequence);
 }

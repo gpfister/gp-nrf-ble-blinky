@@ -1,15 +1,27 @@
-# Copyright (c) 2021 Nordic Semiconductor ASA
-# SPDX-License-Identifier: Apache-2.0
 #
+# gp-nrf-ble-blinky
+# Copyright (c) 2023, Greg PFISTER. MIT Licennse
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+#
+
 # This file is the application Kconfig entry point. All application Kconfig
 # options can be defined here or included via other application Kconfig files.
 # You can browse these options using the west targets menuconfig (terminal) or
 # guiconfig (GUI).
 
-menu "Zephyr"
-source "Kconfig.zephyr"
-endmenu
+mainmenu "Greg's nRF BLE Bliny"
 
 module = APP
 module-str = App
 source "subsys/logging/Kconfig.template.log_config"
+
+menu "Zephyr"
+source "Kconfig.zephyr"
+endmenu

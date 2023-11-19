@@ -29,7 +29,9 @@ const uint8_t *led_controller_get_led_status();
 const uint8_t *led_controller_get_selected_led_sequence();
 void led_controller_set_selected_led_sequence(const uint8_t *led_sequence);
 
+#if CONFIG_LED_DRIVER_BLE
 void led_controller_set_bt_connected();
 void led_controller_unset_bt_connected();
+#endif /* CONFIG_LED_DRIVER_BLE */
 
 #endif /* __LED_H__ */
